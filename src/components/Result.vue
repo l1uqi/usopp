@@ -1,47 +1,31 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 
+const props = defineProps({
+  list: Array,
+});
+
+const list = computed(() => {
+  return props.list;
+})
+
+console.log(list);
 </script>
 
 <template>
   <div class="result">
     <div class="loading"></div>
     <div class="list">
-      <div class="list-item">
+      <div class="list-item" v-for="(item, index) in list" :key="index">
         <div class="icon">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
+          <img :src="item.icon_path" class="logo vite" alt="Vite logo" />
         </div>
         <div class="content">
           <div class="title">
-            ECS电子合同平台
+            {{ item.display_name }}
           </div>
           <div class="description">
-            C:\Program Files\ECS-CS\ECS-CS.exe
-          </div>
-        </div>
-      </div>
-      <div class="list-item">
-        <div class="icon">
-          <img src="/tauri.svg" class="logo vite" alt="Vite logo" />
-        </div>
-        <div class="content">
-          <div class="title">
-            ECS电子合同平台
-          </div>
-          <div class="description">
-            C:\Program Files\ECS-CS\ECS-CS.exe
-          </div>
-        </div>
-      </div>
-      <div class="list-item">
-        <div class="icon">
-          <img src="../assets/vue.svg" class="logo vite" alt="Vite logo" />
-        </div>
-        <div class="content">
-          <div class="title">
-            DBI电子报表
-          </div>
-          <div class="description">
-            C:\Program Files\ECS-CS\ECS-CS.exe
+            {{ item.run_path }}
           </div>
         </div>
       </div>

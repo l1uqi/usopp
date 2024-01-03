@@ -1,17 +1,32 @@
 <script setup lang="ts">
+import Result from "./Result.vue";
 import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 
-const name = ref("");
+const searchval = ref("");
+
+const list = ref([])
+
+async function getSearhResult(e) {
+  if(e.target.value === '') {
+    return list.value = [];
+  }
+  let result = await invoke("search", { name: e.target.value });
+  if(result.status) {
+    list.value = result.data;
+  }
+}
 
 </script>
 
 <template>
   <div class="search">
     <img src="/vite.svg" class="search-logo logo" alt="Vite logo" />
-    <input class="search-input" v-model="name" placeholder="我是乌索普, 请输入你想要搜索的..." />
+    <input @input="getSearhResult" class="search-input" v-model="searchval" placeholder="我是乌索普, 请输入你想要搜索的..." />
     <div class="search-more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path fill="#000" d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"/></svg></div>
   </div>
+  <hr />
+  <Result :list="list" />
 
 </template>
 <style>
