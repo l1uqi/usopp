@@ -16,8 +16,9 @@
 .container {
   border-radius: 6px;
   background-color: white;
-  width: 500px;
+  width: auto;
   min-height: 100px;
+  overflow: hidden;
 }
 
 .logo {

@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use usopp::{storage::read_data, dto::{Application, StorageData}};
 
 // 根据输入的字符串搜索应用程序
@@ -24,9 +26,15 @@ pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
     .iter()
     .filter(|app| app.display_name.contains(name))
     .collect();
-    println!("{:?}", filtered_apps);
     Ok(StorageData {
         data: serde_json::to_value(filtered_apps).unwrap(),
         status: true,
     })
+}
+
+#[tauri::command]
+pub fn open(app_path: &str) {
+   Command::new(app_path)
+        .spawn()
+        .expect("Failed to open application");
 }

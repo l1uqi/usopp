@@ -16,7 +16,17 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "protocol": {
+        "all": false,
+        "asset": true,
+        "assetScope": [
+          "**"
+        ]
       }
+    },
+    "security": {
+      "csp": "default-src 'self'; img-src 'self'; asset: https://asset.localhost"
     },
     "bundle": {
       "active": true,
@@ -29,9 +39,6 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ]
-    },
-    "security": {
-      "csp": null
     },
     "windows": [
       {

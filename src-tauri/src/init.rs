@@ -1,5 +1,6 @@
-use usopp::{dto::Application, storage::{write_data}};
-use winreg::{RegKey, enums::{HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER, KEY_READ}};
+use usopp::{dto::Application, storage::write_data, icons::{get_exe_path_for_icon, get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}};
+use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
+
 
 const UNINSTALL_KEY: &str = "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
 
@@ -14,21 +15,7 @@ fn get_subkeys(reg_key: &RegKey) -> Vec<String> {
   reg_key.enum_keys().map(|x| x.unwrap()).collect()
 }
 
-// 通过exe路径获取icon路径
-// 调用windows api ExtractAssociatedIconW获取icon路径
-fn get_icon_for_exe(exe_path: &str) {
-}
-
-// 通过icon路径获取exe路径
-fn fix_icon_path(display_icon: &str) -> String {
-  if let Some(extension) = std::path::Path::new(display_icon).extension() {
-    let icon_path_without_extension = display_icon.trim_end_matches(extension.to_str().unwrap());
-    let icon_path_with_exe = format!("{}exe", icon_path_without_extension);
-    return icon_path_with_exe;
-  }
-  display_icon.to_owned()
-}
-
+// 获取本地应用信息
 fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
   let app_key = reg_key.open_subkey_with_flags(subkey, KEY_READ).ok()?;
   let display_name: String = app_key.get_value("DisplayName").unwrap_or_default();
@@ -36,19 +23,34 @@ fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
   if !display_name.is_empty() {
       let display_icon: String = app_key.get_value("DisplayIcon").unwrap_or_default();
       let mut run_path: String = String::new();
+      let mut icon_path = String::new();
+      let mut icon_buffer = vec![];
       if !display_icon.is_empty(){
-        run_path = fix_icon_path(&display_icon);
-        get_icon_for_exe(&run_path);
-        println!("run_path: {}", run_path)
+     
+        run_path = get_exe_path_for_icon(&display_icon);
+        
+        if display_name == "微信" {
+          println!("display_icon: {}", display_icon);
+          println!("run_path: {}", run_path);
+        }
+        if let Some(icon) = get_icon(&run_path) {
+          if let Some(map) = get_icon_bigmap(icon) {
+            if let Some(buffer) = get_bitmap_buffer(map) {
+              icon_path = save_icon_file(&buffer, &display_name);
+              icon_buffer = buffer;
+            }
+          }
+        }
       }
       let install_location: String = app_key.get_value("InstallLocation").unwrap_or_default();
 
       Some(Application {
           name: subkey.to_owned(),
           display_name,
-          icon_path: display_icon,
           install_location,
-          run_path
+          run_path,
+          icon_path,
+          icon_buffer
       })
   } else {
       None
@@ -78,6 +80,5 @@ pub fn get_application() -> Vec<Application> {
           applications.push(application);
       }
   }
-
   applications
 }

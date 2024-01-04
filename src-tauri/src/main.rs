@@ -9,7 +9,8 @@ fn main() {
     init::init_app();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            command::search
+            command::search,
+            command::open,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
