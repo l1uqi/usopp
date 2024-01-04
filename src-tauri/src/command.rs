@@ -24,7 +24,7 @@ pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
    
     let filtered_apps: Vec<&Application> = apps
     .iter()
-    .filter(|app| app.display_name.contains(name))
+    .filter(|app| app.display_name.to_lowercase().replace(" ", "").contains(&name.to_lowercase()))
     .collect();
     Ok(StorageData {
         data: serde_json::to_value(filtered_apps).unwrap(),
