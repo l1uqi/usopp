@@ -1,7 +1,18 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+import { invoke } from "@tauri-apps/api/tauri";
 import Search from "./components/Search.vue";
+import { register } from '@tauri-apps/api/globalShortcut';
+
+window.addEventListener('blur', () => {
+  invoke("window_change", { event: 'blur' });
+});
+
+register('alt+W', () => {
+  invoke("window_change", { event: 'focus' });
+});
+
 </script>
 
 <template>

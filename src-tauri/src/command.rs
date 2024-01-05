@@ -1,5 +1,6 @@
 use std::process::Command;
 
+use tauri::{Window, Manager};
 use usopp::{storage::read_data, dto::{Application, StorageData}, utils::get_apps};
 
 // 根据输入的字符串搜索应用程序
@@ -34,8 +35,19 @@ pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
 }
 
 #[tauri::command]
-pub fn open(app_path: &str) {
+pub fn open(window: Window, app_path: &str) {
    Command::new(app_path)
         .spawn()
         .expect("Failed to open application");
+    window.hide().unwrap()
 }
+
+
+#[tauri::command]
+pub fn window_change(window: Window, event: String) {
+  match event.as_str() {
+       "blur" => window.hide().unwrap(),
+       "focus" => window.show().unwrap(),
+       _ => {}
+   }
+}   
