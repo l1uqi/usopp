@@ -49,7 +49,7 @@ const handleMouseOver = (index: number) => {
 }
 
 const handleOpen = (app: Application) => {
-  invoke("open", { appPath: app.run_path });
+  invoke("open", { appPath: app.soft_run_path });
   // 后续,这里要隐藏界面
 }
 </script>
@@ -60,14 +60,14 @@ const handleOpen = (app: Application) => {
     <div class="list">
       <div class="list-item" :class="{ active: selectIndex === index }" :style="{ background: selectIndex === index? '#f7f7f7' : '' }" :index="index" v-for="(item, index) in list" :key="index" @click="handleOpen(item)" @mouseover="handleMouseOver(index)">
         <div class="icon">
-          <img :src="fileToUrl(item.icon_path)" />
+          <img :src="fileToUrl(item.soft_icon_path)" />
         </div>
         <div class="content">
           <div class="title">
-            {{ item.display_name }}
+            {{ item.soft_name }}
           </div>
           <div class="description">
-            {{ item.run_path }}
+            {{ item.soft_run_path }}
           </div>
         </div>
       </div>
@@ -78,7 +78,7 @@ const handleOpen = (app: Application) => {
 <style>
 .result {
   width: 100%;
-  max-height: 500px;
+  max-height: 350px;
   overflow-y: auto;
 }
 .loading {
@@ -88,14 +88,12 @@ const handleOpen = (app: Application) => {
   left: 0;
   z-index: 999
 }
-.list {
-
-}
 .list-item {
   display: flex;
   align-items: center;
   padding: 15px;
   border-bottom: 1px solid rgb(243, 241, 241);
+  overflow: hidden;
 }
 
 .icon {

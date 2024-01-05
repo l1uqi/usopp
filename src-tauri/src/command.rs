@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use usopp::{storage::read_data, dto::{Application, StorageData}};
+use usopp::{storage::read_data, dto::{Application, StorageData}, utils::get_apps};
 
 // 根据输入的字符串搜索应用程序
 // 暂时不考虑中文搜索、MacOs及Linux
@@ -24,10 +24,11 @@ pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
    
     let filtered_apps: Vec<&Application> = apps
     .iter()
-    .filter(|app| app.display_name.to_lowercase().replace(" ", "").contains(&name.to_lowercase()))
+    .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name.to_lowercase()))
     .collect();
+    let apps = get_apps(&filtered_apps);
     Ok(StorageData {
-        data: serde_json::to_value(filtered_apps).unwrap(),
+        data: serde_json::to_value(apps).unwrap(),
         status: true,
     })
 }

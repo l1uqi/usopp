@@ -18,6 +18,7 @@
   background-color: white;
   width: auto;
   min-height: 100px;
+  max-height: 600px;
   overflow: hidden;
 }
 
@@ -82,4 +83,31 @@ button {
   button:active {
     background-color: #0f0f0f69;
   }
+}
+
+
+/* 隐藏滚动条 */
+::-webkit-scrollbar {
+  width: 0.5rem; /* 设置滚动条宽度 */
+  background-color: transparent; /* 设置滚动条背景颜色 */
+}
+
+/* 隐藏滚动条上的滑块 */
+::-webkit-scrollbar-thumb {
+  background-color: transparent; /* 设置滑块颜色 */
+}
+
+/* 隐藏滚动条上的滑块悬停时的样式 */
+::-webkit-scrollbar-thumb:hover {
+  background-color: transparent; /* 设置滑块悬停时的颜色 */
+}
+
+/* 隐藏滚动条上的轨道 */
+::-webkit-scrollbar-track {
+  background-color: transparent; /* 设置轨道背景颜色 */
+}
+
+/* 隐藏滚动条上的轨道悬停时的样式 */
+::-webkit-scrollbar-track:hover {
+  background-color: transparent; /* 设置轨道悬停时的颜色 */
 }
