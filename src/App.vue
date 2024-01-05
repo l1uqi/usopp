@@ -6,7 +6,7 @@ import Search from "./components/Search.vue";
 import { register } from '@tauri-apps/api/globalShortcut';
 
 window.addEventListener('blur', () => {
-  invoke("window_change", { event: 'blur' });
+  // invoke("window_change", { event: 'blur' });
 });
 
 register('alt+W', () => {
@@ -16,7 +16,7 @@ register('alt+W', () => {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" data-tauri-drag-region>
     <Search />
   </div>
 </template>
