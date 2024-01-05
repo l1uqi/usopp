@@ -50,7 +50,6 @@ const handleMouseOver = (index: number) => {
 
 const handleOpen = (app: Application) => {
   invoke("open", { appPath: app.soft_run_path });
-  // 后续,这里要隐藏界面
 }
 </script>
 
@@ -78,7 +77,7 @@ const handleOpen = (app: Application) => {
 <style>
 .result {
   width: 100%;
-  max-height: 350px;
+  max-height: 315px;
   overflow-y: auto;
 }
 .loading {

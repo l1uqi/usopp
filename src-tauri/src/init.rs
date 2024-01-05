@@ -1,7 +1,6 @@
 use usopp::{dto::Application, storage::write_data};
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
 
-
 const UNINSTALL_KEY: &str = "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
 
 const UNINSTALL_KEY_2: &str = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
@@ -24,7 +23,6 @@ fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
   let soft_parent_display_name: String = app_key.get_value("ParentDisplayName").unwrap_or_default();
  
   if !soft_name.is_empty() && sys_component!= "1" && soft_parent_key.is_empty() && soft_parent_display_name.is_empty() {
-    println!("soft_name: {}", soft_name);
     let soft_publisher: String = app_key.get_value("Publisher").unwrap_or_default();
     let soft_version: String = app_key.get_value("DisplayVersion").unwrap_or_default();
     let soft_main_pro_path: String = app_key.get_value("InstallLocation").unwrap_or_default();
