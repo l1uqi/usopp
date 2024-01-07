@@ -1,7 +1,8 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Application {
   pub name: String,
-  pub soft_name: String, // 软件名
+  pub soft_name_init:String, // 软件名
+  pub soft_name: String, // 软件拼音名
   pub soft_publisher: String, // 软件发布者
   pub soft_version: String, // 软件版本
   pub soft_main_pro_path: String, // 软件主程序路径
@@ -12,7 +13,8 @@ pub struct Application {
 #[derive(serde::Serialize, Debug)]
 pub struct ApplicationPayLoad {
   pub name: String,
-  pub soft_name: String,
+  pub soft_name_init:String, // 软件名
+  pub soft_name: String, // 软件拼音名
   pub soft_publisher: String,
   pub soft_version: String, 
   pub soft_run_path: String,

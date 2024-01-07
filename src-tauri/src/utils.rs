@@ -1,5 +1,7 @@
 use std::{path::{Path, PathBuf}, fs};
 
+use pinyin::{to_pinyin_vec, Pinyin};
+
 use crate::{dto::{Application, ApplicationPayLoad}, icons::{get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}};
 
 pub fn get_apps(apps: &Vec<&Application>) -> Vec<ApplicationPayLoad> {
@@ -63,6 +65,7 @@ fn get_app_info(path: &str, app: &Application) -> ApplicationPayLoad {
   let mut pay_load = ApplicationPayLoad {
       name: app.name.clone(),
       soft_name: app.soft_name.clone(),
+      soft_name_init: app.soft_name_init.clone(),
       soft_publisher: app.soft_publisher.clone(),
       soft_version: app.soft_version.clone(),
       soft_run_path: path.to_owned(),
@@ -87,4 +90,14 @@ pub fn create_folder(dir_name: &str) {
   if !path.exists() { // 判断路径是否已经存在
       fs::create_dir(path).expect("无法创建目录"); // 创建新的文件夹
   }
+}
+pub fn get_pin_yin(parma: & str) -> String {
+  let a = to_pinyin_vec(parma, Pinyin::plain).join("");
+  let mut b = a.as_str();
+  let mut temp: String = String::new();
+  if b == "" {
+      temp = parma.to_lowercase();
+      b = temp.as_str();
+  }
+  b.to_string()
 }

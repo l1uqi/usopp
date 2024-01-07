@@ -1,5 +1,6 @@
 export type Application = {
   name: string,
+  soft_name_init: string,
   soft_name: string,
   soft_install: string,
   soft_publisher: string,
