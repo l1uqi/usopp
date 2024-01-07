@@ -80,3 +80,11 @@ fn get_app_info(path: &str, app: &Application) -> ApplicationPayLoad {
   }
   pay_load
 }
+
+pub fn create_folder(dir_name: &str) {
+  let path = Path::new(&dir_name); // 将字符串转换为路径对象
+  
+  if !path.exists() { // 判断路径是否已经存在
+      fs::create_dir(path).expect("无法创建目录"); // 创建新的文件夹
+  }
+}

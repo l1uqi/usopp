@@ -2,6 +2,8 @@ use std::{mem, path::{Path, PathBuf}};
 use tauri::api::path::local_data_dir;
 use winapi::{um::{ shellapi, wingdi::{ BITMAP, GetObjectW}, winuser::{ICONINFO, GetIconInfo}}, shared::windef::{HICON, HBITMAP}};
 
+use crate::utils::create_folder;
+
 // 通过exe路径获取icon句柄
 // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shgetfileinfow
 pub fn get_icon(exe_path: &str) -> Option<HICON> {
@@ -73,8 +75,9 @@ pub fn get_bitmap_buffer(bitmap: HBITMAP) -> Option<Vec<u8>> {
 // 保存icon到本地
 pub fn save_icon_file(buffer: &Vec<u8>, file_name: &str) -> String {
   let width = 32;
-  let height = 32;
-  let output_directory = Path::new(&local_data_dir().unwrap()).join("Usopp").join("icons");
+  let height = 32;                                          
+  let output_directory: PathBuf = Path::new(&local_data_dir().unwrap()).join("Usopp").join("icons");
+  create_folder(output_directory.to_str().unwrap());
   let mut bmp_file_path =  PathBuf::from(output_directory);
   bmp_file_path.push(format!("{name}.png", name = file_name));
   let img = image::ImageBuffer::from_fn(width as u32, height as u32, |x, y| {
