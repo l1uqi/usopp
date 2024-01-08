@@ -4,13 +4,43 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import Search from "./components/Search.vue";
 import { register } from '@tauri-apps/api/globalShortcut';
+import { appWindow } from "@tauri-apps/api/window";
+import { TauriEvent } from "@tauri-apps/api/event";
 
-window.addEventListener('blur', () => {
-  // invoke("window_change", { event: 'blur' });
+let isDragging = false;
+let timeout = null;
+
+appWindow.listen(TauriEvent.WINDOW_MOVED , () => {
+  console.log(' WINDOW_MOVED', isDragging)
+  isDragging = true;
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    isDragging = false;
+    console.log('move ended');
+  }, 500); // 设置延迟时间，单位为毫秒
+});
+
+appWindow.listen(TauriEvent.WINDOW_FOCUS , () => {
+  if (!isDragging) {
+    invoke("window_change", { event: 'focus' });
+  }
+});
+
+appWindow.listen(TauriEvent.WINDOW_BLUR , () => {
+  setTimeout(() => {
+    if (!isDragging) {
+      invoke("window_change", { event: 'blur' });
+    }
+  }, 100);
+ 
 });
 
 register('alt+W', () => {
   invoke("window_change", { event: 'focus' });
+  const input = document.querySelector("#search-input");
+  if(input) {
+    input.focus()
+  }
 });
 
 </script>

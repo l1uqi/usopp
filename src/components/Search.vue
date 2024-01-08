@@ -23,7 +23,7 @@ async function getSearhResult(e) {
 <template>
   <div class="search" data-tauri-drag-region>
     <img src="/logo.png" class="search-logo logo" alt="logo" />
-    <input @input="getSearhResult" class="search-input" v-model="searchval" placeholder="I'm usopp, I support application search...." />
+    <input id="search-input" @input="getSearhResult" class="search-input" v-model="searchval" placeholder="I'm usopp, I support application search...." />
     <div class="search-more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path fill="#000" d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"/></svg></div>
   </div>
   <hr />

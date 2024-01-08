@@ -18,7 +18,9 @@
     "allowlist": {
       "all": false,
       "window": {
-        "startDragging": true
+        "startDragging": true,
+        "show": true,
+        "hide": true
       },
       "shell": {
         "all": false,

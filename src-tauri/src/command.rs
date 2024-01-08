@@ -48,7 +48,10 @@ pub fn open(window: Window, app_path: &str) {
 pub fn window_change(window: Window, event: String) {
   match event.as_str() {
        "blur" => window.hide().unwrap(),
-       "focus" => window.show().unwrap(),
+       "focus" => {
+        window.show().unwrap();
+        let _ = window.set_focus();
+       },
        _ => {}
    }
 }   

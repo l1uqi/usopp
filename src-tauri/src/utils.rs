@@ -53,6 +53,8 @@ fn get_directory_exe(dir_path: &str, app_name: String) -> Vec<String> {
       }
     }
   }
+  // 如何应用name、或者父级路径 如 d/bilibili/xx.exe 能够匹配上bilibili.exe 那就直接返回
+  // 否则返回exe 列表
   if is_match_app_name {
     list.clear();
     list.push(match_app_path)
