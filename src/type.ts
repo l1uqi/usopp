@@ -1,12 +1,12 @@
 export type Application = {
   name: string,
-  soft_name_init: string,
-  soft_name: string,
-  soft_install: string,
-  soft_publisher: string,
-  soft_icon_buffer: Array<number>,
-  soft_icon_path: string,
-  soft_run_path: string,
+  text_name: string,
+  r_type: string,
+  r_install: string,
+  r_publisher: string,
+  r_icon_buffer: Array<number>,
+  r_icon_path: string,
+  r_exe_path: string,
   url: string
 }
 

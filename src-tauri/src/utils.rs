@@ -1,17 +1,40 @@
-use std::{path::{Path, PathBuf}, fs};
+use std::{path::{Path, PathBuf}, fs, io};
 
 use pinyin::{to_pinyin_vec, Pinyin};
 
-use crate::{dto::{Application, ApplicationPayLoad}, icons::{get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}};
+use crate::{dto::{Application, SearchResultPayLoad, FolderInfo}, icons::{get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}, storage::read_data, config::{STORAGE_APPS_KEY, STORAGE_FOLDERS_KEY}, enums::SearchPayLoadEvent};
 
-pub fn get_apps(apps: &Vec<&Application>) -> Vec<ApplicationPayLoad> {
-  let mut apps_payload: Vec<ApplicationPayLoad> = Vec::new();
-  apps.iter().for_each(|item| {
+// 获取应用程序
+pub fn search_apps(name: &str) -> Vec<SearchResultPayLoad> {
+  let py_name = get_pin_yin(name);
+  let mut apps: Vec<Application> = vec![];
+  let result = read_data(STORAGE_APPS_KEY);
+  match result {
+      Ok(res) => {
+        apps = res.data.as_array().expect("Invalid data format")
+        .iter()
+        .map(|app| {
+            serde_json::from_value::<Application>(app.clone()).expect("Failed to deserialize")
+        })
+        .collect();
+      }
+      Err(e) => {
+          println!("{}", e);
+      }
+  }
+ 
+  let filtered_apps: Vec<&Application> = apps
+  .iter()
+  .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name) || get_pin_yin(&app.soft_name.to_lowercase().replace(" ", "")).contains(&py_name))
+  .collect();
+  let mut apps_payload: Vec<SearchResultPayLoad> = Vec::new();
+
+  filtered_apps.iter().for_each(|item| {
     if !item.soft_uninstall_path.is_empty() {
       let un_path = &item.soft_uninstall_path.trim_matches('"').to_owned();
       let un_path = un_path.replace("/allusers", "");
-      let parent_dir = Path::new(&un_path).parent().expect("Failed to get parent directory");
-      let exe_path_list = get_directory_exe(parent_dir.to_str().unwrap(), item.soft_name.clone());
+      let parent_dir = Path::new(&un_path).parent().expect("Failed to get parent folder");
+      let exe_path_list = get_folder_exe(parent_dir.to_str().unwrap(), item.soft_name.clone());
       exe_path_list.iter().for_each(|exe_path| {
         apps_payload.push(get_app_info(exe_path, &item));
       });
@@ -20,9 +43,114 @@ pub fn get_apps(apps: &Vec<&Application>) -> Vec<ApplicationPayLoad> {
   apps_payload
 }
 
+// 获取文件夹
+pub fn search_folders(name: &str) -> Vec<SearchResultPayLoad> {
+  let mut folders: Vec<FolderInfo> = vec![];
+  let result = read_data(STORAGE_FOLDERS_KEY);
+  match result {
+      Ok(res) => {
+        folders = res.data.as_array().expect("Invalid data format")
+        .iter()
+        .map(|app| {
+            serde_json::from_value::<FolderInfo>(app.clone()).expect("Failed to deserialize")
+        })
+        .collect();
+      }
+      Err(e) => {
+          println!("{}", e);
+      }
+  }
+  let filtered_folders: Vec<&FolderInfo> = folders
+  .iter()
+  .filter(|app| app.name.to_lowercase().replace(" ", "").contains(&name))
+  .collect();
+
+  let mut folder_icon_path = String::new();
+
+  if !filtered_folders.is_empty() {
+    let folder_path = filtered_folders[0].path.clone();
+    if let Some(icon) = get_icon(&folder_path) {
+      if let Some(map) = get_icon_bigmap(icon) {
+        if let Some(buffer) = get_bitmap_buffer(map) {
+          folder_icon_path = save_icon_file(&buffer, "folder");
+        
+        }
+      }
+    }
+  }
+
+  let mut folder_payload: Vec<SearchResultPayLoad> = vec![];
+  filtered_folders.iter().for_each(|item| {
+    folder_payload.push(SearchResultPayLoad {
+      name: item.name.clone(),
+      text_name: item.name.clone(),
+      // r_type: SearchPayLoadEvent::Folder,
+      r_type: "Folder".to_string(),
+      r_publisher: None,
+      r_version: None,
+      r_exe_path: Some(item.path.clone()),
+      r_icon_path: Some(folder_icon_path.clone()),
+    })
+  });
+  folder_payload
+}
+
+pub fn create_folder(dir_name: &str) {
+  let path = Path::new(&dir_name); // 将字符串转换为路径对象
+  
+  if !path.exists() { // 判断路径是否已经存在
+      fs::create_dir(path).expect("无法创建目录"); // 创建新的文件夹
+  }
+}
+
+pub fn get_pin_yin(parma: & str) -> String {
+  let a = to_pinyin_vec(parma, Pinyin::plain).join("");
+  let mut b = a.as_str();
+  let mut temp: String = String::new();
+  if b == "" {
+      temp = parma.to_lowercase();
+      b = temp.as_str();
+  }
+  b.to_string()
+}
+
+// 获取目录下文件夹信息 folder_path 目录 max_depth 目录深度 current_depth 当前目录深度
+pub fn get_folder_info_recursive(folder_path: String, max_depth: u32, current_depth: u32) -> Vec<FolderInfo> {
+  let mut folder_list: Vec<FolderInfo> = Vec::new();
+
+  if current_depth > max_depth {
+    return folder_list;
+  }
+
+  if let Ok(entries) = fs::read_dir(folder_path) {
+    for entry in entries {
+      if let Ok(entry) = entry {
+        if let Ok(file_type) = entry.file_type() {
+          if file_type.is_dir() {
+            let folder_name = entry.file_name().to_string_lossy().to_string();
+            let folder_path = entry.path();
+            // 跳过隐藏目录
+            if folder_name.starts_with(".") {
+              continue;
+            }
+            let folder_info = FolderInfo {
+              name: folder_name.clone(),
+              path: folder_path.clone().to_string_lossy().to_string(),
+            };
+            folder_list.push(folder_info);
+            let subdirectories = get_folder_info_recursive(folder_path.to_string_lossy().to_string(), max_depth, current_depth + 1);
+            folder_list.extend(subdirectories);
+          }
+        }
+      }
+    }
+  }
+  folder_list
+}
+
 // 注册表内没有主程序的exe文件, 很多应用程序的主程序名称未知 所以干脆获取目录下所有exe
 // 未来有更好的思路进行更改
-fn get_directory_exe(dir_path: &str, app_name: String) -> Vec<String> {
+fn get_folder_exe(dir_path: &str, app_name: String) -> Vec<String> {
   let mut list: Vec<String> = Vec::new();
   let mut is_match_app_name = false;
   let mut match_app_path = String::new();
@@ -63,43 +191,47 @@ fn get_directory_exe(dir_path: &str, app_name: String) -> Vec<String> {
 }
 
 // 通过exe路径 获取应用信息
-fn get_app_info(path: &str, app: &Application) -> ApplicationPayLoad {
-  let mut pay_load = ApplicationPayLoad {
+fn get_app_info(path: &str, app: &Application) -> SearchResultPayLoad {
+  let mut pay_load = SearchResultPayLoad {
       name: app.name.clone(),
-      soft_name: app.soft_name.clone(),
-      soft_name_init: app.soft_name_init.clone(),
-      soft_publisher: app.soft_publisher.clone(),
-      soft_version: app.soft_version.clone(),
-      soft_run_path: path.to_owned(),
-      soft_icon_path: "".to_string(),
-      soft_icon_buffer: vec![],
+      text_name: app.soft_name.clone(),
+      r_publisher: Some(app.soft_publisher.clone()),
+      r_version: Some(app.soft_version.clone()),
+      r_exe_path: Some(path.to_owned()),
+      r_icon_path: None,
+      r_type: "Application".to_string()
+      // soft_icon_buffer: vec![],
   };
   
   if let Some(icon) = get_icon(&path) {
     if let Some(map) = get_icon_bigmap(icon) {
       if let Some(buffer) = get_bitmap_buffer(map) {
-        pay_load.soft_icon_path = save_icon_file(&buffer, &app.soft_name);
-        pay_load.soft_icon_buffer = buffer;
+        pay_load.r_icon_path = Some(save_icon_file(&buffer, &app.soft_name));
+        // pay_load.soft_icon_buffer = buffer;
       }
     }
   }
   pay_load
 }
 
-pub fn create_folder(dir_name: &str) {
-  let path = Path::new(&dir_name); // 将字符串转换为路径对象
-  
-  if !path.exists() { // 判断路径是否已经存在
-      fs::create_dir(path).expect("无法创建目录"); // 创建新的文件夹
+
+// 获取盘符
+pub fn get_logical_drive_letters() ->  Vec<char> {
+  let mut drive_letters: Vec<char> = Vec::new();
+
+  for letter in b'A'..=b'Z' {
+      drive_letters.push(letter as char);
   }
+
+  drive_letters
 }
-pub fn get_pin_yin(parma: & str) -> String {
-  let a = to_pinyin_vec(parma, Pinyin::plain).join("");
-  let mut b = a.as_str();
-  let mut temp: String = String::new();
-  if b == "" {
-      temp = parma.to_lowercase();
-      b = temp.as_str();
+
+pub fn check_drive_exists(drive_letter: char) -> bool {
+  let drive_path = format!("{}:\\", drive_letter);
+
+  if let Ok(metadata) = fs::metadata(drive_path) {
+      metadata.is_dir()
+  } else {
+      false
   }
-  b.to_string()
 }

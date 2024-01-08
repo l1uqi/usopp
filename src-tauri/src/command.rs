@@ -1,46 +1,50 @@
 use std::process::Command;
 
-use tauri::{Window, Manager};
-use usopp::{storage::read_data, dto::{Application, StorageData}, utils::{get_apps, get_pin_yin}};
+use tauri::Window;
+use usopp::{dto::{Application, StorageData, SearchResultPayLoad}, utils::{search_apps, search_folders}, config::MAX_LIST_SIZE};
 
 // 根据输入的字符串搜索应用程序
 // 暂时不考虑中文搜索、MacOs及Linux
 #[tauri::command]
 pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
-    let name = get_pin_yin(name);
-    let mut apps: Vec<Application> = vec![];
-    let result = read_data("apps");
-    match result {
-        Ok(res) => {
-          apps = res.data.as_array().expect("Invalid data format")
-          .iter()
-          .map(|app| {
-              serde_json::from_value::<Application>(app.clone()).expect("Failed to deserialize")
-          })
-          .collect();
-        }
-        Err(e) => {
-            println!("{}", e);
-        }
+    let mut result: Vec<SearchResultPayLoad> = Vec::new();
+    // 获取应用程序
+    let apps = search_apps(name);
+    let folders = search_folders(name);
+
+    if !apps.is_empty() {
+        result.extend(apps);
     }
-   
-    let filtered_apps: Vec<&Application> = apps
-    .iter()
-    .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name))
-    .collect();
-    let apps = get_apps(&filtered_apps);
+
+    if !folders.is_empty() {
+        result.extend(folders);
+    }
+
+    let limited_result = result.into_iter().take(MAX_LIST_SIZE).collect::<Vec<SearchResultPayLoad>>();
+
     Ok(StorageData {
-        data: serde_json::to_value(apps).unwrap(),
+        data: serde_json::to_value(limited_result).unwrap(),
         status: true,
     })
 }
 
 #[tauri::command]
-pub fn open(window: Window, app_path: &str) {
-   Command::new(app_path)
-        .spawn()
-        .expect("Failed to open application");
-    window.hide().unwrap()
+pub fn open(window: Window, r_type: &str, path: &str) {
+    match r_type {
+       "Application" => {
+            Command::new(path)
+            .spawn()
+            .expect("Failed to open application");
+        },
+       "Folder" => {
+            let mut command = Command::new("explorer");
+            command.arg(path);
+            command
+                .spawn()
+                .expect("Failed to open folder");
+            },
+        _ => {}
+    }
 }
 
 

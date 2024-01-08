@@ -1,13 +1,11 @@
-use usopp::{dto::Application, storage::write_data, utils::get_pin_yin};
+use usopp::{dto::{Application, FolderInfo}, storage::write_data, utils::{get_folder_info_recursive, get_logical_drive_letters, check_drive_exists}, config::{UNINSTALL_KEY, UNINSTALL_KEY_2, STORAGE_APPS_KEY, STORAGE_FOLDERS_KEY, MAX_DEPTH}};
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
-
-const UNINSTALL_KEY: &str = "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-
-const UNINSTALL_KEY_2: &str = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
 
 pub fn init_app() {
   let apps: Vec<Application> = get_application();
-  write_data("apps", serde_json::json!(apps));
+  write_data(STORAGE_APPS_KEY, serde_json::json!(apps));
+  let folder_list = get_folders();
+  write_data(STORAGE_FOLDERS_KEY, serde_json::json!(folder_list));
 }
 
 fn get_subkeys(reg_key: &RegKey) -> Vec<String> {
@@ -18,8 +16,7 @@ fn get_subkeys(reg_key: &RegKey) -> Vec<String> {
 fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
   let app_key = reg_key.open_subkey_with_flags(subkey, KEY_READ).ok()?;
   let sys_component: String = app_key.get_value("SystemComponent").unwrap_or_default();
-  let soft_name_init: String = app_key.get_value("DisplayName").unwrap_or_default();
-  let soft_name = get_pin_yin(&soft_name_init);
+  let soft_name: String = app_key.get_value("DisplayName").unwrap_or_default();
   let soft_parent_key: String = app_key.get_value("ParentKeyName").unwrap_or_default();
   let soft_parent_display_name: String = app_key.get_value("ParentDisplayName").unwrap_or_default();
  
@@ -38,14 +35,13 @@ fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
         soft_main_pro_path,
         soft_uninstall_path,
         soft_size,
-        soft_name_init,
     })
   } else {
     None
   }
 }
 
-pub fn get_application() -> Vec<Application> {
+fn get_application() -> Vec<Application> {
   let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
   let hklm_2 = RegKey::predef(HKEY_CURRENT_USER);
 
@@ -78,3 +74,18 @@ pub fn get_application() -> Vec<Application> {
   }
   applications
 }
+
+// 获取文件夹信息
+fn get_folders() -> Vec<FolderInfo> {
+  // a-z盘符
+  let drive_letters = get_logical_drive_letters();
+  let mut folder_list = Vec::new();
+  for letter in drive_letters {
+    if check_drive_exists(letter) {
+      let drive_path = format!("{}:\\", letter);
+      folder_list.extend(get_folder_info_recursive(drive_path, MAX_DEPTH, 1));
+    }
+  }
+  folder_list
+}
+

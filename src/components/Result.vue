@@ -49,7 +49,7 @@ const handleMouseOver = (index: number) => {
 }
 
 const handleOpen = (app: Application) => {
-  invoke("open", { appPath: app.soft_run_path });
+  invoke("open", { rType: app.r_type, path: app.r_exe_path });
 }
 </script>
 
@@ -59,14 +59,14 @@ const handleOpen = (app: Application) => {
     <div class="list">
       <div class="list-item" :class="{ active: selectIndex === index }" :style="{ background: selectIndex === index? '#f7f7f7' : '' }" :index="index" v-for="(item, index) in list" :key="index" @click="handleOpen(item)" @mouseover="handleMouseOver(index)">
         <div class="icon">
-          <img :src="fileToUrl(item.soft_icon_path)" />
+          <img :src="fileToUrl(item.r_icon_path)" />
         </div>
         <div class="content">
           <div class="title">
-            {{ item.soft_name_init }}
+            {{ item.text_name }}
           </div>
           <div class="description">
-            {{ item.soft_run_path }}
+            {{ item.r_exe_path }}
           </div>
         </div>
       </div>

@@ -1,7 +1,10 @@
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+use serde::{Serialize, Deserialize};
+
+use crate::enums::SearchPayLoadEvent;
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Application {
   pub name: String,
-  pub soft_name_init:String, // 软件名
   pub soft_name: String, // 软件拼音名
   pub soft_publisher: String, // 软件发布者
   pub soft_version: String, // 软件版本
@@ -10,25 +13,32 @@ pub struct Application {
   pub soft_size: u64,
 }
 
-#[derive(serde::Serialize, Debug)]
-pub struct ApplicationPayLoad {
+#[derive(serde::Serialize)]
+pub struct SearchResultPayLoad {
   pub name: String,
-  pub soft_name_init:String, // 软件名
-  pub soft_name: String, // 软件拼音名
-  pub soft_publisher: String,
-  pub soft_version: String, 
-  pub soft_run_path: String,
-  pub soft_icon_path: String,
-  pub soft_icon_buffer: Vec<u8>
+  pub text_name: String,
+  pub r_type: String,
+  pub r_publisher: Option<String>,
+  pub r_version: Option<String>, 
+  pub r_exe_path: Option<String>,
+  pub r_icon_path: Option<String>,
+
+  // pub soft_icon_buffer: Vec<u8>
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FolderInfo {
+  pub name: String,
+  pub path: String,
+}
+
+#[derive(Serialize, Debug)]
 pub struct StorageData {
     pub data: serde_json::Value,
     pub status: bool,
 }
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Clone, Serialize)]
 struct Payload {
     status: String
 }
