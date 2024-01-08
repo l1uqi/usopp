@@ -1,12 +1,13 @@
 use std::process::Command;
 
 use tauri::{Window, Manager};
-use usopp::{storage::read_data, dto::{Application, StorageData}, utils::get_apps};
+use usopp::{storage::read_data, dto::{Application, StorageData}, utils::{get_apps, get_pin_yin}};
 
 // 根据输入的字符串搜索应用程序
 // 暂时不考虑中文搜索、MacOs及Linux
 #[tauri::command]
 pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
+    let name = get_pin_yin(name);
     let mut apps: Vec<Application> = vec![];
     let result = read_data("apps");
     match result {
@@ -25,7 +26,7 @@ pub fn search(name: &str) -> Result<StorageData ,Vec<Application>> {
    
     let filtered_apps: Vec<&Application> = apps
     .iter()
-    .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name.to_lowercase()))
+    .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name))
     .collect();
     let apps = get_apps(&filtered_apps);
     Ok(StorageData {

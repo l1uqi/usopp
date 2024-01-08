@@ -1,4 +1,4 @@
-use usopp::{dto::Application, storage::write_data};
+use usopp::{dto::Application, storage::write_data, utils::get_pin_yin};
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
 
 const UNINSTALL_KEY: &str = "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
@@ -18,7 +18,8 @@ fn get_subkeys(reg_key: &RegKey) -> Vec<String> {
 fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
   let app_key = reg_key.open_subkey_with_flags(subkey, KEY_READ).ok()?;
   let sys_component: String = app_key.get_value("SystemComponent").unwrap_or_default();
-  let soft_name: String = app_key.get_value("DisplayName").unwrap_or_default();
+  let soft_name_init: String = app_key.get_value("DisplayName").unwrap_or_default();
+  let soft_name = get_pin_yin(&soft_name_init);
   let soft_parent_key: String = app_key.get_value("ParentKeyName").unwrap_or_default();
   let soft_parent_display_name: String = app_key.get_value("ParentDisplayName").unwrap_or_default();
  
@@ -37,6 +38,7 @@ fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
         soft_main_pro_path,
         soft_uninstall_path,
         soft_size,
+        soft_name_init,
     })
   } else {
     None

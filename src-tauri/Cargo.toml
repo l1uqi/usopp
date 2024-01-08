@@ -23,6 +23,8 @@ winapi= {version = "0.3", features = ["winuser", "shellapi", "oleauto"] }
 com = "0.5"
 widestring = "0.4"
 image = "0.23"
+cargo-watch = "8.5.2"
+pinyin = "0.10"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

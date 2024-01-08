@@ -63,7 +63,7 @@ const handleOpen = (app: Application) => {
         </div>
         <div class="content">
           <div class="title">
-            {{ item.soft_name }}
+            {{ item.soft_name_init }}
           </div>
           <div class="description">
             {{ item.soft_run_path }}
