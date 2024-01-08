@@ -103,15 +103,21 @@ pub fn create_folder(dir_name: &str) {
   }
 }
 
-pub fn get_pin_yin(parma: & str) -> String {
-  let a = to_pinyin_vec(parma, Pinyin::plain).join("");
-  let mut b = a.as_str();
-  let mut temp: String = String::new();
-  if b == "" {
-      temp = parma.to_lowercase();
-      b = temp.as_str();
-  }
-  b.to_string()
+// 获取拼音
+pub fn get_pin_yin(parma: &str) -> String {
+    let mut pin_yin = String::new();
+    for char_item in parma.to_string().chars(){
+        // 获取转换的拼音
+        let transform_pinyin = to_pinyin_vec(char_item.to_string().as_str(), Pinyin::plain).join("");
+        let mut transform_pinyin_str = transform_pinyin.as_str();
+        let mut temp: String = String::new();
+        if transform_pinyin_str ==  ""&& char_item.to_string() != " " {
+            temp = char_item.to_string().to_lowercase();
+            transform_pinyin_str= temp.as_str();
+        }
+        pin_yin.push_str(transform_pinyin_str);
+    } 
+  pin_yin
 }
 
 // 获取目录下文件夹信息 folder_path 目录 max_depth 目录深度 current_depth 当前目录深度
