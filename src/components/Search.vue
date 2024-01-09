@@ -4,6 +4,11 @@ import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Application, SearchPaylod } from "../type";
 
+// 支持的指令
+const directives = ["vscode","idea"];
+
+const matchDirective = ref("");
+
 const searchval = ref("");
 
 const loading = ref(false);
@@ -12,7 +17,35 @@ const list = ref([] as Application[])
 
 let timeout = null;
 
+function checkDirective(str: string) {
+  const regex = /^(\w+):$/; // 正则表达式匹配带有冒号的输入
+  const match = regex.exec(str);
+  if (match) {
+    const directive = match[1];
+    if (directives.includes(directive)) {
+      return directive;
+    }
+  }
+  return false;
+}
+
+const handleKeyDown = (e) => {
+  if(e.key === 'Backspace') {
+    if(searchval.value === '' && matchDirective.value) {
+      matchDirective.value = '';
+    }
+  }
+}
+
 async function getSearhResult(e) {
+  if(e.target.value.includes(':')) {
+    const val = checkDirective(e.target.value)
+    if(val) {
+      searchval.value = ""
+      return matchDirective.value = val;
+    }
+  }
+
   loading.value = true;
   if (e.target.value === '') {
     loading.value = false;
@@ -21,7 +54,7 @@ async function getSearhResult(e) {
 
   clearTimeout(timeout);
   timeout = setTimeout(async () => {
-    invoke("search", { name: e.target.value }).then(result => {
+    invoke("search", { name: e.target.value, directive: matchDirective.value }).then(result => {
       if (result.status) {
         loading.value = false;
         list.value = result.data;
@@ -36,7 +69,10 @@ async function getSearhResult(e) {
 <template>
   <div class="search" data-tauri-drag-region>
     <img src="/logo.png" class="search-logo logo" alt="logo" />
-    <svg v-show="loading" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+    <span v-if="matchDirective" class="directive fade-in">{{ matchDirective }}</span>
+    <input id="search-input" @keydown="handleKeyDown"  @input="getSearhResult" class="search-input" v-model="searchval"
+      placeholder="I support application search...." />
+    <svg v-show="loading" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 25 25">
       <g fill="none" stroke="#87CEFA" stroke-linecap="round" stroke-width="2">
         <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3"
           d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z">
@@ -49,15 +85,13 @@ async function getSearhResult(e) {
         </path>
       </g>
     </svg>
-    <input id="search-input" @input="getSearhResult" class="search-input" v-model="searchval"
-      placeholder="I'm usopp, I support application search...." />
     <div class="search-more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24">
         <path fill="#000"
           d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2" />
       </svg></div>
   </div>
   <hr />
-  <Result :list="list" />
+  <Result :list="list" :directive="matchDirective" />
 </template>
 <style>
 .search {
@@ -84,7 +118,7 @@ async function getSearhResult(e) {
 
 input {
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+  padding: 10px 12px;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -99,5 +133,26 @@ hr {
   border: 0;
   height: 1px;
   background-image: linear-gradient(to right, rgba(64, 52, 234, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
+
+.directive {
+  font-size: 12px;
+  background-color: rgb(214, 221, 154);
+  color: white;
+  height: 25px;
+  padding: 0px 10px;
+  border-radius: 8px;
+}
+.fade-in {
+  animation: fade-in 0.8s;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

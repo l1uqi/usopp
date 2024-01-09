@@ -8,11 +8,16 @@ const selectIndex = ref(0);
 
 const props = defineProps({
   list: Array<Application>,
+  directive: String,
 });
 
 const list = computed(() => {
   return props.list;
 })
+
+const directive = computed(() => {
+  return props.directive;
+});
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
@@ -24,7 +29,6 @@ const fileToUrl = (filePath: string) => {
 }
 
 const handleKeyDown = (event) => {
-
   if(list.value?.length === 0) return; 
   if (event.key === 'ArrowUp') {
     selectIndex.value = selectIndex.value -1;
@@ -33,7 +37,7 @@ const handleKeyDown = (event) => {
     }
   } else if (event.key === 'ArrowDown') {
     selectIndex.value = selectIndex.value + 1;
-    if(selectIndex.value > list.value.length) {
+    if(selectIndex.value >= list.value.length) {
       selectIndex.value = 0;
     }
   }
@@ -49,7 +53,7 @@ const handleMouseOver = (index: number) => {
 }
 
 const handleOpen = (app: Application) => {
-  invoke("open", { rType: app.r_type, path: app.r_exe_path });
+  invoke("open", { rType: app.r_type, path: app.r_exe_path, directive: directive.value });
 }
 </script>
 

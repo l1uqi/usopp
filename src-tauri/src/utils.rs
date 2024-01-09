@@ -34,7 +34,7 @@ pub fn search_apps(name: &str) -> Vec<SearchResultPayLoad> {
       let un_path = &item.soft_uninstall_path.trim_matches('"').to_owned();
       let un_path = un_path.replace("/allusers", "");
       let parent_dir = Path::new(&un_path).parent().expect("Failed to get parent folder");
-      let exe_path_list = get_folder_exe(parent_dir.to_str().unwrap(), item.soft_name.clone());
+      let exe_path_list = get_folder_exe(parent_dir.to_str().unwrap(), item.soft_name.clone(), item.soft_icon_name.clone());
       exe_path_list.iter().for_each(|exe_path| {
         apps_payload.push(get_app_info(exe_path, &item));
       });
@@ -88,6 +88,7 @@ pub fn search_folders(name: &str) -> Vec<SearchResultPayLoad> {
       r_type: "Folder".to_string(),
       r_publisher: None,
       r_version: None,
+      r_main_pro_path: None,
       r_exe_path: Some(item.path.clone()),
       r_icon_path: Some(folder_icon_path.clone()),
     })
@@ -156,11 +157,12 @@ pub fn get_folder_info_recursive(folder_path: String, max_depth: u32, current_de
 
 // 注册表内没有主程序的exe文件, 很多应用程序的主程序名称未知 所以干脆获取目录下所有exe
 // 未来有更好的思路进行更改
-fn get_folder_exe(dir_path: &str, app_name: String) -> Vec<String> {
+fn get_folder_exe(dir_path: &str, app_name: String, icon_name: String) -> Vec<String> {
   let mut list: Vec<String> = Vec::new();
   let mut is_match_app_name = false;
   let mut match_app_path = String::new();
   if let Ok(entries) = fs::read_dir(dir_path) {
+
     for entry in entries {
       if let Ok(entry) = entry {
         let file_path = entry.path();
@@ -174,10 +176,10 @@ fn get_folder_exe(dir_path: &str, app_name: String) -> Vec<String> {
             Some(parent_dir) => parent_dir.file_name().unwrap_or_default().to_string_lossy().into_owned(),
             None => String::new(),
         };
-
+        
         if file_path.is_file() && file_path.extension().unwrap_or_default() == "exe" {
           list.push(file_path.to_str().unwrap().to_owned());
-          if app_name.starts_with(&file_name_without_extension) || file_name_without_extension == parent_dir_name {
+          if icon_name.starts_with(&file_name_without_extension) || app_name.starts_with(&file_name_without_extension) || file_name_without_extension == parent_dir_name {
            
             is_match_app_name = true;
             match_app_path = file_path.to_str().unwrap().to_owned();
@@ -187,8 +189,7 @@ fn get_folder_exe(dir_path: &str, app_name: String) -> Vec<String> {
       }
     }
   }
-  // 如何应用name、或者父级路径 如 d/bilibili/xx.exe 能够匹配上bilibili.exe 那就直接返回
-  // 否则返回exe 列表
+  // 应用name、或者父级路径 如 d/bilibili/xx.exe 能够匹配上[name].exe 那就直接返回
   if is_match_app_name {
     list.clear();
     list.push(match_app_path)
@@ -204,6 +205,7 @@ fn get_app_info(path: &str, app: &Application) -> SearchResultPayLoad {
       r_publisher: Some(app.soft_publisher.clone()),
       r_version: Some(app.soft_version.clone()),
       r_exe_path: Some(path.to_owned()),
+      r_main_pro_path: Some(app.soft_main_pro_path.clone()),
       r_icon_path: None,
       r_type: "Application".to_string()
       // soft_icon_buffer: vec![],

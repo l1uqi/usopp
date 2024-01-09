@@ -1,11 +1,10 @@
 use serde::{Serialize, Deserialize};
 
-use crate::enums::SearchPayLoadEvent;
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Application {
   pub name: String,
   pub soft_name: String, // 软件拼音名
+  pub soft_icon_name: String,
   pub soft_publisher: String, // 软件发布者
   pub soft_version: String, // 软件版本
   pub soft_main_pro_path: String, // 软件主程序路径
@@ -22,6 +21,7 @@ pub struct SearchResultPayLoad {
   pub r_version: Option<String>, 
   pub r_exe_path: Option<String>,
   pub r_icon_path: Option<String>,
+  pub r_main_pro_path: Option<String>,
 
   // pub soft_icon_buffer: Vec<u8>
 }

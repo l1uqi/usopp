@@ -9,4 +9,4 @@ pub const UNINSTALL_KEY_2: &str = "Software\\Microsoft\\Windows\\CurrentVersion\
 // 文件遍历深度
 pub const MAX_DEPTH: u32 = 3;
 // 列表最大条数
-pub const MAX_LIST_SIZE: usize = 100;
+pub const MAX_LIST_SIZE: usize = 30;

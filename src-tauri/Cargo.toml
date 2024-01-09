@@ -25,6 +25,7 @@ widestring = "0.4"
 image = "0.23"
 cargo-watch = "8.5.2"
 pinyin = "0.10"
+tokio = { version = "1.35.1", features = ["full"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

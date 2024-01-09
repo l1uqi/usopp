@@ -11,12 +11,10 @@ let isDragging = false;
 let timeout = null;
 
 appWindow.listen(TauriEvent.WINDOW_MOVED , () => {
-  console.log(' WINDOW_MOVED', isDragging)
   isDragging = true;
   clearTimeout(timeout);
   timeout = setTimeout(() => {
     isDragging = false;
-    console.log('move ended');
   }, 500); // 设置延迟时间，单位为毫秒
 });
 
