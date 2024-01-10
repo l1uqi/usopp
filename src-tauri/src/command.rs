@@ -53,15 +53,10 @@ pub fn open(window: Window, r_type: &str, path: &str, directive: &str) {
                 command.spawn().expect("Failed to open folder");
             }
             if directive == "vscode" {
-                // let status = Command::new("cmd")
-                //     .args(&["/C", "code", path])
-                //     .status()
-                //     .expect("Failed to open folder with VSCode");
                 let mut cmd = Command::new("cmd");
                 cmd.args(&["/C", "code", path]);
 
                 let _ = cmd.spawn().map_err(|e| e.to_string());
-
             }
             if directive == "idea" {
                 let apps = search("idea");
@@ -81,16 +76,6 @@ pub fn open(window: Window, r_type: &str, path: &str, directive: &str) {
                                                 .current_dir(idea_path);
 
                                             let _ = cmd.spawn().map_err(|e| e.to_string());
-                                            // let status = Command::new("cmd")
-                                            //     .args(&["/c", "idea.bat", path])
-                                            //     .current_dir(idea_path)
-                                            //     .status()
-                                            //     .await()
-                                            //     .expect("Failed to open folder with VSCode");
-
-                                            // if !status.success() {
-                                            //     panic!("Failed to open folder with VSCode");
-                                            // }
                                         }
                                     }
                                 }
@@ -102,14 +87,6 @@ pub fn open(window: Window, r_type: &str, path: &str, directive: &str) {
                     }
                     Err(_err) => {}
                 }
-                // let status = Command::new("cmd")
-                // .args(&["/C", "idea", path])
-                // .status()
-                // .expect("Failed to open folder with VSCode");
-
-                // if !status.success() {
-                //     panic!("Failed to open folder with VSCode");
-                // }
             }
         }
 

@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { Application, SearchPaylod } from "../type";
 
 // 支持的指令
-const directives = ["vscode","idea"];
+const directives = ["vscode", "idea"];
 
 const matchDirective = ref("");
 
@@ -15,7 +15,7 @@ const loading = ref(false);
 
 const list = ref([] as Application[])
 
-let timeout = null;
+let timeout: number | null | undefined = null;
 
 function checkDirective(str: string) {
   const regex = /^(\w+):$/; // 正则表达式匹配带有冒号的输入
@@ -29,7 +29,7 @@ function checkDirective(str: string) {
   return false;
 }
 
-const handleKeyDown = (e) => {
+const handleKeyDown = (e: { key: string; }) => {
   if(e.key === 'Backspace') {
     if(searchval.value === '' && matchDirective.value) {
       matchDirective.value = '';
@@ -37,9 +37,10 @@ const handleKeyDown = (e) => {
   }
 }
 
-async function getSearhResult(e) {
-  if(e.target.value.includes(':')) {
-    const val = checkDirective(e.target.value)
+async function getSearhResult(e: Event) {
+  const inputValue = (e.target as HTMLInputElement).value;
+  if(inputValue.includes(':')) {
+    const val = checkDirective(inputValue)
     if(val) {
       searchval.value = ""
       return matchDirective.value = val;
@@ -47,17 +48,20 @@ async function getSearhResult(e) {
   }
 
   loading.value = true;
-  if (e.target.value === '') {
+  if (inputValue === '') {
     loading.value = false;
     return list.value = [];
   }
-
-  clearTimeout(timeout);
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+ 
   timeout = setTimeout(async () => {
-    invoke("search", { name: e.target.value, directive: matchDirective.value }).then(result => {
-      if (result.status) {
+    invoke("search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
+      const searchPayload = result as SearchPaylod;
+      if (searchPayload.status) {
         loading.value = false;
-        list.value = result.data;
+        list.value = searchPayload.data;
       }
     });
 

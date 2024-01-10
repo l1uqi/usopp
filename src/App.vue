@@ -8,11 +8,13 @@ import { appWindow } from "@tauri-apps/api/window";
 import { TauriEvent } from "@tauri-apps/api/event";
 
 let isDragging = false;
-let timeout = null;
+let timeout: number | null | undefined = null;
 
 appWindow.listen(TauriEvent.WINDOW_MOVED , () => {
   isDragging = true;
-  clearTimeout(timeout);
+  if (timeout) {
+    clearTimeout(timeout);
+  }
   timeout = setTimeout(() => {
     isDragging = false;
   }, 500); // 设置延迟时间，单位为毫秒
@@ -35,7 +37,7 @@ appWindow.listen(TauriEvent.WINDOW_BLUR , () => {
 
 register('alt+W', () => {
   invoke("window_change", { event: 'focus' });
-  const input = document.querySelector("#search-input");
+  const input = document.querySelector("#search-input") as HTMLInputElement;
   if(input) {
     input.focus()
   }
