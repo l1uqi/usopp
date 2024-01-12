@@ -1,11 +1,11 @@
-use std::time::Instant;
+use std::{time::Instant, sync::{Mutex, Arc}};
 use tokio::process::Command;
 
-use tauri::Window;
+use tauri::{Window, State};
 use usopp::{
     config::MAX_LIST_SIZE,
     dto::{Application, SearchResultPayLoad, StorageData},
-    utils::{search_apps, search_folders},
+    utils::{search_apps, search_folders, get_window_position}, window::{WindowManager, WinManager},
 };
 
 // 根据输入的字符串搜索应用程序
@@ -104,4 +104,16 @@ pub fn window_change(window: Window, event: String) {
         }
         _ => {}
     }
+}
+
+
+#[tauri::command]
+pub async fn window_create<'a>(window: Window, label: &'a str, width: f64, height: f64, win_manager: State<'a, Arc<Mutex<WindowManager>>>) -> Result<(), String> { 
+    let mut manager = win_manager.lock().unwrap();
+    if let Some(main_window) = manager.get_window("usopp") {
+        let main_window = main_window.clone();
+        let position = get_window_position(&main_window);
+        manager.create_window(label, "https://www.baidu.com", width, height, position.x.into(), position.y.into());
+    }
+    Ok(())
 }

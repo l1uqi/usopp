@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Result from "./Result.vue";
+import Webview from "./Webview.vue";
 import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Application, SearchPaylod } from "../type";
@@ -68,6 +69,10 @@ async function getSearhResult(e: Event) {
   }, 500);
 }
 
+const more = () => {
+  invoke("window_create", { label: "test11", width: 200.0, height: 200.0 });
+}
+
 </script>
 
 <template>
@@ -89,13 +94,14 @@ async function getSearhResult(e: Event) {
         </path>
       </g>
     </svg>
-    <div class="search-more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24">
+    <div class="search-more" @click="more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24">
         <path fill="#000"
           d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2" />
       </svg></div>
   </div>
   <hr />
   <Result :list="list" :directive="matchDirective" />
+  <Webview />
 </template>
 <style>
 .search {

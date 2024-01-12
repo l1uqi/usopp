@@ -29,7 +29,7 @@ appWindow.listen(TauriEvent.WINDOW_FOCUS , () => {
 appWindow.listen(TauriEvent.WINDOW_BLUR , () => {
   setTimeout(() => {
     if (!isDragging) {
-      invoke("window_change", { event: 'blur' });
+      // invoke("window_change", { event: 'blur' });
     }
   }, 100);
  
