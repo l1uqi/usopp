@@ -1,11 +1,11 @@
-use std::{time::Instant, sync::{Mutex, Arc}};
+use std::{time::{Instant, Duration}, sync::{Mutex, Arc}};
 use tokio::process::Command;
 
 use tauri::{Window, State};
 use usopp::{
     config::MAX_LIST_SIZE,
     dto::{Application, SearchResultPayLoad, StorageData},
-    utils::{search_apps, search_folders, get_window_position}, window::{WindowManager, WinManager},
+    utils::{search_apps, search_folders, get_window_position}, window::{WindowManager, WindowInfo},
 };
 
 // 根据输入的字符串搜索应用程序
@@ -39,7 +39,7 @@ pub fn search(name: &str) -> Result<StorageData, Vec<Application>> {
 }
 
 #[tauri::command]
-pub fn open(window: Window, r_type: &str, path: &str, directive: &str) {
+pub fn open(_window: Window, r_type: &str, path: &str, directive: &str) {
     match r_type {
         "Application" => {
             Command::new(path)
@@ -95,25 +95,50 @@ pub fn open(window: Window, r_type: &str, path: &str, directive: &str) {
 }
 
 #[tauri::command]
-pub fn window_change(window: Window, event: String) {
+pub async fn window_change(window: Window, event: String, win_manager: State<'_, Arc<Mutex<WindowManager>>>) -> Result<(), String> {
+    
+    let manager = win_manager.lock().unwrap();
     match event.as_str() {
-        "blur" => window.hide().unwrap(),
+        "blur" => {
+            // tokio::time::sleep(Duration::from_millis(100)).await;
+            manager.hide_all_window();
+            Ok(())
+        },
         "focus" => {
-            window.show().unwrap();
-            let _ = window.set_focus();
+            // window.show().unwrap();
+            manager.show_all_window();
+            Ok(())
         }
-        _ => {}
+        _ => {
+            Ok(())
+        }
     }
 }
 
-
 #[tauri::command]
-pub async fn window_create<'a>(window: Window, label: &'a str, width: f64, height: f64, win_manager: State<'a, Arc<Mutex<WindowManager>>>) -> Result<(), String> { 
+pub async fn window_create<'a>(_window: Window, label: &'a str, win_manager: State<'a, Arc<Mutex<WindowManager>>>) -> Result<(), String> { 
     let mut manager = win_manager.lock().unwrap();
     if let Some(main_window) = manager.get_window("usopp") {
         let main_window = main_window.clone();
         let position = get_window_position(&main_window);
-        manager.create_window(label, "https://www.baidu.com", width, height, position.x.into(), position.y.into());
+        manager.create_window(label, "https://www.baidu.com", position.x.into(), position.y as f64);
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn window_resize(_window: Window, width: i32, height: i32, win_manager: State<Arc<Mutex<WindowManager>>>) {
+    let manager = win_manager.lock().unwrap();
+    manager.update_window_size(width, height);
+}
+
+#[tauri::command]
+pub fn set_parent_window_info(_window: Window, width: f64, height: f64, top: f64, win_manager: State<Arc<Mutex<WindowManager>>>) {
+    let mut manager = win_manager.lock().unwrap();
+    manager.set_window_info(WindowInfo {
+        width,
+        height,
+        top
+    });
+//   Ok(())
 }

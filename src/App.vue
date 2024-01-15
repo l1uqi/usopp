@@ -29,7 +29,7 @@ appWindow.listen(TauriEvent.WINDOW_FOCUS , () => {
 appWindow.listen(TauriEvent.WINDOW_BLUR , () => {
   setTimeout(() => {
     if (!isDragging) {
-      // invoke("window_change", { event: 'blur' });
+      invoke("window_change", { event: 'blur' });
     }
   }, 100);
  
@@ -43,6 +43,14 @@ register('alt+W', () => {
   }
 });
 
+window.onresize = () => {
+  const element = document.getElementById('webview');
+  if(element) {
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+    invoke("window_resize", { width: width, height: height  });
+  }
+}
 </script>
 
 <template>

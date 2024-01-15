@@ -1,5 +1,5 @@
 <template>
-  <div class="webview">
+  <div class="webview" id="webview">
     webview
   </div>
 </template>
@@ -7,5 +7,6 @@
 .webview {
   width: 100%;
   height: 300px;
+  background: transparent;
 }
 </style>

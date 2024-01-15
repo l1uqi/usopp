@@ -3,7 +3,8 @@
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",
     "devPath": "http://localhost:4001",
-    "distDir": "../dist"
+    "distDir": "../dist",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "usopp",
@@ -59,8 +60,8 @@
         "transparent": true,
         "label": "usopp",
         "title": "usopp",
-        "width": 500,
-        "height": 350
+        "width": 600,
+        "height": 450
       }
     ]
   }
