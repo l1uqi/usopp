@@ -43,6 +43,14 @@ register('alt+W', () => {
   }
 });
 
+window.onresize = () => {
+  const element = document.getElementById('webview');
+  if(element) {
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+    invoke("window_resize", { width: width, height: height  });
+  }
+}
 </script>
 
 <template>

@@ -1,6 +1,7 @@
 use std::{path::{Path, PathBuf}, fs, io};
 
 use pinyin::{to_pinyin_vec, Pinyin};
+use tauri::PhysicalPosition;
 
 use crate::{dto::{Application, SearchResultPayLoad, FolderInfo}, icons::{get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}, storage::read_data, config::{STORAGE_APPS_KEY, STORAGE_FOLDERS_KEY}, enums::SearchPayLoadEvent};
 
@@ -242,4 +243,15 @@ pub fn check_drive_exists(drive_letter: char) -> bool {
   } else {
       false
   }
+}
+
+
+// 获取窗口位置
+pub fn get_window_position(window: &tauri::Window) -> PhysicalPosition<i32> {
+
+  if let Ok(position)  = window.inner_position() {
+    return position;
+  }
+ 
+  PhysicalPosition::new(0, 0)
 }

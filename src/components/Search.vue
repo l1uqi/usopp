@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Result from "./Result.vue";
-import { ref } from "vue";
+import Webview from "./Webview.vue";
+import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Application, SearchPaylod } from "../type";
 
@@ -16,6 +17,24 @@ const loading = ref(false);
 const list = ref([] as Application[])
 
 let timeout: number | null | undefined = null;
+
+const webViewRef = ref(null);
+
+const getWebViewDimensions = () => {
+  if(webViewRef.value) {
+    const webViewElement = webViewRef.value.$el; // 获取 WebView 组件的 DOM 元素
+    const webViewWidth = webViewElement.offsetWidth; // 获取 WebView 组件的宽度
+    const webViewHeight = webViewElement.offsetHeight; // 获取 WebView 组件的高度
+    const webViewTop = webViewElement.offsetTop; // 获取 WebView 组件距离顶部的距离
+
+    invoke("set_parent_window_info", { width: webViewWidth, height: webViewHeight, top: webViewTop })
+  }
+ 
+};
+
+onMounted(() => {
+  getWebViewDimensions();
+})
 
 function checkDirective(str: string) {
   const regex = /^(\w+):$/; // 正则表达式匹配带有冒号的输入
@@ -68,6 +87,10 @@ async function getSearhResult(e: Event) {
   }, 500);
 }
 
+const more = () => {
+  invoke("window_create", { label: "test11" });
+}
+
 </script>
 
 <template>
@@ -89,13 +112,14 @@ async function getSearhResult(e: Event) {
         </path>
       </g>
     </svg>
-    <div class="search-more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24">
+    <div class="search-more" @click="more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24">
         <path fill="#000"
           d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2" />
       </svg></div>
   </div>
   <hr />
   <Result :list="list" :directive="matchDirective" />
+  <Webview ref="webViewRef" />
 </template>
 <style>
 .search {
@@ -103,6 +127,7 @@ async function getSearhResult(e: Event) {
   align-items: center;
   padding: 0px 15px;
   height: 65px;
+  background-color: white;
 }
 
 .search-logo {
