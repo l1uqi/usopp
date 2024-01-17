@@ -93,6 +93,10 @@ const handleOpen = (app: Application) => {
   left: 0;
   z-index: 999
 }
+.list {
+  background-color: white;
+}
+
 .list-item {
   display: flex;
   align-items: center;

@@ -88,7 +88,7 @@ button {
 
 /* 隐藏滚动条 */
 ::-webkit-scrollbar {
-  width: 0.5rem; /* 设置滚动条宽度 */
+  width: 0rem; /* 设置滚动条宽度 */
   background-color: transparent; /* 设置滚动条背景颜色 */
 }
 
