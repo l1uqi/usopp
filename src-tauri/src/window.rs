@@ -1,5 +1,5 @@
 use std::{collections::HashMap, thread, time::Duration};
-use tauri::{Window, AppHandle, PhysicalPosition, LogicalSize, Manager};
+use tauri::{AppHandle, LogicalSize, Manager, PhysicalPosition, Window};
 
 #[derive(Debug)]
 pub struct WindowInfo {
@@ -15,7 +15,7 @@ pub struct WindowManager {
     handler: AppHandle,
     width: f64,
     height: f64,
-    top: f64
+    top: f64,
 }
 
 #[allow(dead_code)]
@@ -26,19 +26,13 @@ impl WindowManager {
             handler,
             width: 0.0,
             height: 0.0,
-            top: 0.0
+            top: 0.0,
         }
     }
 
-    pub fn create_window(
-        &mut self,
-        label: &str,
-        url: &str,
-        x: f64,
-        y: f64,
-    ) {
+    pub fn create_window(&mut self, label: &str, url: &str, x: f64, y: f64) {
         // let parent = self.handler.get_window("usopp");
-        
+
         // js注入测试
         let initialization_script = r#"
         (function() {
@@ -93,8 +87,8 @@ impl WindowManager {
     }
 
     pub fn update_window_size(&self, width: i32, height: i32) {
-        for (key, value) in &self.windows {
-            if key != "usopp" {
+        for (_, value) in &self.windows {
+            if value.label() != "usopp" {
                 let _ = value.set_size(LogicalSize { width, height });
             }
         }
@@ -111,7 +105,7 @@ impl WindowManager {
     }
 
     pub fn show_all_window(&self) {
-        for (key, value) in &self.windows {
+        for (key, _value) in &self.windows {
             let _ = &self.show_window(key);
         }
     }
@@ -124,7 +118,7 @@ impl WindowManager {
 
     pub fn hide_all_window(&self) {
         let mut is_hide = true;
-        for (key, value) in &self.windows {
+        for (key, _value) in &self.windows {
             // let _ = &self.hide_window(key);
             let win = self.get_window(key);
 
@@ -135,24 +129,18 @@ impl WindowManager {
                         is_hide = false;
                     }
                 }
-               
             }
         }
 
         if is_hide {
-            println!("隐藏");
-            for (key, value) in &self.windows {
+            for (key, _value) in &self.windows {
                 // let _ = &self.hide_window(key);
                 let win = self.get_window(key);
                 if let Some(win) = win {
-                    // win.hide().expect("Failed to hide window");
-                   
+                    win.hide().expect("Failed to hide window");
                 }
             }
-        } else {
-            println!("显示");
         }
-
     }
 
     pub fn hide_window(&self, label: &str) {
@@ -164,6 +152,19 @@ impl WindowManager {
     pub fn close_window(&mut self, label: &str) {
         if let Some(window) = self.windows.remove(label) {
             window.close().expect("Failed to close window");
+        }
+    }
+
+    pub fn close_child_window(&mut self) {
+        let mut labels_to_close = Vec::new();
+        for (label, _) in &self.windows {
+            if label != "usopp" {
+                labels_to_close.push(label.to_string());
+            }
+        }
+
+        for label in labels_to_close {
+            self.close_window(&label);
         }
     }
 

@@ -95,18 +95,21 @@ pub fn open(_window: Window, r_type: &str, path: &str, directive: &str) {
 }
 
 #[tauri::command]
-pub async fn window_change(window: Window, event: String, win_manager: State<'_, Arc<Mutex<WindowManager>>>) -> Result<(), String> {
-    
-    let manager = win_manager.lock().unwrap();
+pub fn window_change(_window: Window, event: String, win_manager: State<'_, Arc<Mutex<WindowManager>>>) -> Result<(), String> {
+    // 在异步上下文中获取锁
+    let mut manager = win_manager.lock().unwrap();
     match event.as_str() {
         "blur" => {
-            // tokio::time::sleep(Duration::from_millis(100)).await;
             manager.hide_all_window();
             Ok(())
         },
         "focus" => {
             // window.show().unwrap();
             manager.show_all_window();
+            Ok(())
+        },
+        "close_child_win" => {
+            manager.close_child_window();
             Ok(())
         }
         _ => {
@@ -118,7 +121,9 @@ pub async fn window_change(window: Window, event: String, win_manager: State<'_,
 #[tauri::command]
 pub async fn window_create<'a>(_window: Window, label: &'a str, win_manager: State<'a, Arc<Mutex<WindowManager>>>) -> Result<(), String> { 
     let mut manager = win_manager.lock().unwrap();
+  
     if let Some(main_window) = manager.get_window("usopp") {
+     
         let main_window = main_window.clone();
         let position = get_window_position(&main_window);
         manager.create_window(label, "https://www.baidu.com", position.x.into(), position.y as f64);
@@ -133,12 +138,13 @@ pub fn window_resize(_window: Window, width: i32, height: i32, win_manager: Stat
 }
 
 #[tauri::command]
-pub fn set_parent_window_info(_window: Window, width: f64, height: f64, top: f64, win_manager: State<Arc<Mutex<WindowManager>>>) {
+pub fn set_parent_window_info(_window: Window, width: f64, height: f64, top: f64, win_manager: State<'_, Arc<Mutex<WindowManager>>>) -> Result<(), String> {
+    
     let mut manager = win_manager.lock().unwrap();
     manager.set_window_info(WindowInfo {
         width,
         height,
         top
     });
-//   Ok(())
+  Ok(())
 }
