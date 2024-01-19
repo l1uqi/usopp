@@ -19,14 +19,15 @@ const list = ref([] as Application[])
 
 let timeout: number | null | undefined = null;
 
-const webViewRef = ref(null);
+const webViewRef = ref<HTMLDivElement | null>(null);
 
 const isWebViewVisible = ref(false);
 
 // 获取 WebView 组件的尺寸
 const getWebViewDimensions = () => {
   if (webViewRef.value) {
-    const webViewElement = webViewRef.value.$el; // 获取 WebView 组件的 DOM 元素
+    // ignore
+    const webViewElement = webViewRef.value as HTMLDivElement; // 获取 WebView 组件的 DOM 元素
     const webViewWidth = webViewElement.offsetWidth; // 获取 WebView 组件的宽度
     const webViewHeight = webViewElement.offsetHeight; // 获取 WebView 组件的高度
     const webViewTop = webViewElement.offsetTop; // 获取 WebView 组件距离顶部的距离
@@ -97,10 +98,10 @@ async function getSearhResult(e: Event) {
   }, 500);
 }
 
-const more = () => {
-  isWebViewVisible.value = true;
-  invoke("window_create", { label: "test11" });
-}
+// const more = () => {
+//   isWebViewVisible.value = true;
+//   invoke("window_create", { label: "test11" });
+// }
 
 </script>
 

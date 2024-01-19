@@ -15,20 +15,23 @@ let timeout: number | null | undefined = null;
 const container = ref(null);
 
 
-const mutationObserver = new MutationObserver((mutations) => {
-  if(!container.value) return;
+const mutationObserver = new MutationObserver(() => {
+  if (!container.value) return;
   let height = parseFloat(window.getComputedStyle(container.value).getPropertyValue('height'));
   let width = parseFloat(window.getComputedStyle(container.value).getPropertyValue('width'));
   invoke("window_resize", { width, height, wType: 'window' });
 });
 
 onMounted(() => {
-  mutationObserver.observe(container.value, {
-    childList: true, // 子节点的变动（新增、删除或者更改）
-    attributes: true, // 属性的变动
-    characterData: true, // 节点内容或节点文本的变动
-    subtree: true // 是否将观察器应用于该节点的所有后代节点
-  });
+  if (container.value) {
+    mutationObserver.observe(container.value, {
+      childList: true, // 子节点的变动（新增、删除或者更改）
+      attributes: true, // 属性的变动
+      characterData: true, // 节点内容或节点文本的变动
+      subtree: true // 是否将观察器应用于该节点的所有后代节点
+    });
+  }
+
 
 })
 
