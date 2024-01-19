@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import Result from "./Result.vue";
-import { ref } from "vue";
+import Webview from "./Webview.vue";
+import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Application, SearchPaylod } from "../type";
 
 // 支持的指令
 const directives = ["vscode", "idea"];
 
+// 搜索指令
 const matchDirective = ref("");
 
 const searchval = ref("");
@@ -16,6 +18,28 @@ const loading = ref(false);
 const list = ref([] as Application[])
 
 let timeout: number | null | undefined = null;
+
+const webViewRef = ref<HTMLDivElement | null>(null);
+
+const isWebViewVisible = ref(false);
+
+// 获取 WebView 组件的尺寸
+const getWebViewDimensions = () => {
+  if (webViewRef.value) {
+    // ignore
+    const webViewElement = webViewRef.value as HTMLDivElement; // 获取 WebView 组件的 DOM 元素
+    const webViewWidth = webViewElement.offsetWidth; // 获取 WebView 组件的宽度
+    const webViewHeight = webViewElement.offsetHeight; // 获取 WebView 组件的高度
+    const webViewTop = webViewElement.offsetTop; // 获取 WebView 组件距离顶部的距离
+
+    invoke("set_parent_window_info", { width: webViewWidth, height: webViewHeight, top: webViewTop })
+  }
+
+};
+
+onMounted(() => {
+  getWebViewDimensions();
+})
 
 function checkDirective(str: string) {
   const regex = /^(\w+):$/; // 正则表达式匹配带有冒号的输入
@@ -29,19 +53,25 @@ function checkDirective(str: string) {
   return false;
 }
 
+const handleFocus = () => {
+  // 隐藏子窗口
+  invoke("window_change", { event: 'close_child_win' });
+}
+
 const handleKeyDown = (e: { key: string; }) => {
-  if(e.key === 'Backspace') {
-    if(searchval.value === '' && matchDirective.value) {
+  if (e.key === 'Backspace') {
+    if (searchval.value === '' && matchDirective.value) {
       matchDirective.value = '';
     }
   }
 }
 
+// 搜索
 async function getSearhResult(e: Event) {
   const inputValue = (e.target as HTMLInputElement).value;
-  if(inputValue.includes(':')) {
+  if (inputValue.includes(':')) {
     const val = checkDirective(inputValue)
-    if(val) {
+    if (val) {
       searchval.value = ""
       return matchDirective.value = val;
     }
@@ -55,7 +85,7 @@ async function getSearhResult(e: Event) {
   if (timeout) {
     clearTimeout(timeout);
   }
- 
+
   timeout = setTimeout(async () => {
     invoke("search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
       const searchPayload = result as SearchPaylod;
@@ -68,14 +98,19 @@ async function getSearhResult(e: Event) {
   }, 500);
 }
 
+// const more = () => {
+//   isWebViewVisible.value = true;
+//   invoke("window_create", { label: "test11" });
+// }
+
 </script>
 
 <template>
   <div class="search" data-tauri-drag-region>
     <img src="/logo.png" class="search-logo logo" alt="logo" />
     <span v-if="matchDirective" class="directive fade-in">{{ matchDirective }}</span>
-    <input id="search-input" @keydown="handleKeyDown"  @input="getSearhResult" class="search-input" v-model="searchval"
-      placeholder="I support application search...." />
+    <input id="search-input" @focus="handleFocus" @keydown="handleKeyDown" @input="getSearhResult" class="search-input"
+      v-model="searchval" placeholder="I support application search...." />
     <svg v-show="loading" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 25 25">
       <g fill="none" stroke="#87CEFA" stroke-linecap="round" stroke-width="2">
         <path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3"
@@ -89,13 +124,15 @@ async function getSearhResult(e: Event) {
         </path>
       </g>
     </svg>
-    <div class="search-more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24">
+    <!-- <div class="search-more" @click="more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+        viewBox="0 0 24 24">
         <path fill="#000"
           d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2" />
-      </svg></div>
+      </svg></div> -->
   </div>
   <hr />
   <Result :list="list" :directive="matchDirective" />
+  <Webview v-if="isWebViewVisible" ref="webViewRef" />
 </template>
 <style>
 .search {
@@ -103,6 +140,7 @@ async function getSearhResult(e: Event) {
   align-items: center;
   padding: 0px 15px;
   height: 65px;
+  background-color: white;
 }
 
 .search-logo {
@@ -147,6 +185,7 @@ hr {
   padding: 0px 10px;
   border-radius: 8px;
 }
+
 .fade-in {
   animation: fade-in 0.8s;
 }
@@ -155,6 +194,7 @@ hr {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }

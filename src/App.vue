@@ -6,11 +6,38 @@ import Search from "./components/Search.vue";
 import { register } from '@tauri-apps/api/globalShortcut';
 import { appWindow } from "@tauri-apps/api/window";
 import { TauriEvent } from "@tauri-apps/api/event";
+import { onMounted, ref } from "vue";
 
 let isDragging = false;
+
 let timeout: number | null | undefined = null;
 
-appWindow.listen(TauriEvent.WINDOW_MOVED , () => {
+const container = ref(null);
+
+
+const mutationObserver = new MutationObserver(() => {
+  if (!container.value) return;
+  let height = parseFloat(window.getComputedStyle(container.value).getPropertyValue('height'));
+  let width = parseFloat(window.getComputedStyle(container.value).getPropertyValue('width'));
+  invoke("window_resize", { width, height, wType: 'window' });
+});
+
+onMounted(() => {
+  if (container.value) {
+    mutationObserver.observe(container.value, {
+      childList: true, // 子节点的变动（新增、删除或者更改）
+      attributes: true, // 属性的变动
+      characterData: true, // 节点内容或节点文本的变动
+      subtree: true // 是否将观察器应用于该节点的所有后代节点
+    });
+  }
+
+
+})
+
+
+
+appWindow.listen(TauriEvent.WINDOW_MOVED, () => {
   isDragging = true;
   if (timeout) {
     clearTimeout(timeout);
@@ -20,33 +47,45 @@ appWindow.listen(TauriEvent.WINDOW_MOVED , () => {
   }, 500); // 设置延迟时间，单位为毫秒
 });
 
-appWindow.listen(TauriEvent.WINDOW_FOCUS , () => {
+
+appWindow.listen(TauriEvent.WINDOW_FOCUS, () => {
   if (!isDragging) {
     invoke("window_change", { event: 'focus' });
   }
 });
 
-appWindow.listen(TauriEvent.WINDOW_BLUR , () => {
+appWindow.listen(TauriEvent.WINDOW_BLUR, () => {
   setTimeout(() => {
     if (!isDragging) {
-      invoke("window_change", { event: 'blur' });
+      setTimeout(() => {
+        // invoke("window_change", { event: 'blur' });
+      }, 500);
     }
   }, 100);
- 
+
 });
 
 register('alt+W', () => {
   invoke("window_change", { event: 'focus' });
   const input = document.querySelector("#search-input") as HTMLInputElement;
-  if(input) {
+  if (input) {
     input.focus()
   }
 });
 
+window.onresize = () => {
+  const element = document.getElementById('webview');
+  if (element) {
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+    invoke("window_resize", { width: width, height: height, wType: 'webview' });
+  }
+}
+
 </script>
 
 <template>
-  <div class="container" data-tauri-drag-region>
+  <div ref="container" class="container" data-tauri-drag-region>
     <Search />
   </div>
 </template>

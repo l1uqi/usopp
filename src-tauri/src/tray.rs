@@ -43,9 +43,10 @@ pub fn tray_event(app_handle: &AppHandle, event: SystemTrayEvent) {
     },
     #[cfg(target_os = "windows")]
     SystemTrayEvent::LeftClick { .. } => {
-      let window = app_handle.get_window("main").unwrap();
+      let window = app_handle.get_window("usopp").unwrap();
       window.unminimize().unwrap();
       window.show().unwrap();
+      window.set_focus().unwrap();
     }
     _ => {}
 }
