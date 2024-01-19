@@ -8,7 +8,6 @@ use crate::dto::StorageData;
 
 pub fn write_data(key: &str, value: serde_json::Value) {
     let storage_dir = Path::new(&local_data_dir().unwrap()).join("Usopp");
-    println!("storage_dir: {}", storage_dir.to_str().unwrap());
     if let Err(e) = fs::create_dir_all(&storage_dir) {
         eprintln!("Failed to create dirs: {:?}", e);
     }
