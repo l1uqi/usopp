@@ -1,7 +1,7 @@
 use std::{time::{Instant, Duration}, sync::{Mutex, Arc}};
 use tokio::process::Command;
 
-use tauri::{Window, State};
+use tauri::{LogicalSize, State, Window};
 use usopp::{
     config::MAX_LIST_SIZE,
     dto::{Application, SearchResultPayLoad, StorageData},
@@ -132,9 +132,25 @@ pub async fn window_create<'a>(_window: Window, label: &'a str, win_manager: Sta
 }
 
 #[tauri::command]
-pub fn window_resize(_window: Window, width: i32, height: i32, win_manager: State<Arc<Mutex<WindowManager>>>) {
-    let manager = win_manager.lock().unwrap();
-    manager.update_window_size(width, height);
+pub fn window_resize(_window: Window, width: i32, height: i32, w_type: &str, win_manager: State<Arc<Mutex<WindowManager>>>) {
+    match w_type {
+        // 主窗口变化
+        "window" => {
+            let manager = win_manager.lock().unwrap();
+            if let Some(win) = manager.get_window("usopp") {
+                let _ = win.set_size(LogicalSize { width, height });
+            }
+            
+        }
+        // 主窗口内嵌webview
+        "webview" => {
+            let manager = win_manager.lock().unwrap();
+            manager.update_window_size(width, height);
+        }
+        _ => {}
+    }
+    
+   
 }
 
 #[tauri::command]

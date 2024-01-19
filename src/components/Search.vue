@@ -21,6 +21,8 @@ let timeout: number | null | undefined = null;
 
 const webViewRef = ref(null);
 
+const isWebViewVisible = ref(false);
+
 // 获取 WebView 组件的尺寸
 const getWebViewDimensions = () => {
   if (webViewRef.value) {
@@ -128,7 +130,7 @@ const more = () => {
   </div>
   <hr />
   <Result :list="list" :directive="matchDirective" />
-  <Webview ref="webViewRef" />
+  <Webview v-if="isWebViewVisible" ref="webViewRef" />
 </template>
 <style>
 .search {
