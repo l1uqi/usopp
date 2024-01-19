@@ -19,7 +19,6 @@ const mutationObserver = new MutationObserver((mutations) => {
   if(!container.value) return;
   let height = parseFloat(window.getComputedStyle(container.value).getPropertyValue('height'));
   let width = parseFloat(window.getComputedStyle(container.value).getPropertyValue('width'));
-  console.log(height, width);
   invoke("window_resize", { width, height, wType: 'window' });
 });
 

@@ -98,6 +98,7 @@ async function getSearhResult(e: Event) {
 }
 
 const more = () => {
+  isWebViewVisible.value = true;
   invoke("window_create", { label: "test11" });
 }
 
@@ -122,11 +123,11 @@ const more = () => {
         </path>
       </g>
     </svg>
-    <div class="search-more" @click="more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+    <!-- <div class="search-more" @click="more"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
         viewBox="0 0 24 24">
         <path fill="#000"
           d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2" />
-      </svg></div>
+      </svg></div> -->
   </div>
   <hr />
   <Result :list="list" :directive="matchDirective" />
