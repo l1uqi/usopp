@@ -1,12 +1,15 @@
 # usopp
 
 基于[Tauri](https://tauri.app/) 复刻 [rubick](https://github.com/rubickCenter/rubick) 项目。
+
 项目初衷用于学习Rust, 代码现阶段凌乱, 后期会进行重构、优化。
+
+如果你有更好的实现, 欢迎提交pr.
 
 ### 演示
 
 #### 程序、文件夹搜索
-![demo](./public/demo.gif)
+![demo](./public/demo1.gif)
 
 #### 自定义指令开启
 ![demo](./public/demo2.gif)
@@ -22,19 +25,31 @@ pnpm i
 pnpm run tauri 
 ```
 
-### 开发中
-- [x] 应用程序列表
-- [x] 支持拼音搜索
-- [x] 系统最小托盘
-- [x] 支持文件夹
-- [x] 自定义指令打开 idea/vscode 方案探索阶段, 未来灵活可配 
+### 支持
+- 🚀 应用程序列表
+- 🚀 支持拼音搜索
+- 🚀 系统最小托盘
+- 🚀 支持文件夹搜索
+
+
+### 待办
+- [ ] 自定义指令打开 idea/vscode 方案探索阶段, 未来灵活可配 
+- [ ] 支持office文件
 - [ ] 窗口内嵌实现
 - [ ] 插件支持
 - [ ] 系统设置
+- [ ] Mac适配
 
 
 ### 指令
 目前探索阶段
 
-vscode:
-idea: 
+```
+vscode: // 开启vscode打开
+idea: // 开启idea打开
+```
+
+
+## 开源协议
+
+[MIT](https://zh.wikipedia.org/wiki/MIT%E8%A8%B1%E5%8F%AF%E8%AD%89)
