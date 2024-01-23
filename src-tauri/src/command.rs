@@ -1,67 +1,39 @@
 use std::{
     sync::{Arc, Mutex},
-    thread,
     time::Instant,
 };
 use tokio::process::Command;
 
 use tauri::{LogicalSize, State, Window};
 use usopp::{
-    config::{MAX_DEPTH, MAX_LIST_SIZE},
-    dto::{Application, SearchResultPayLoad, StorageData},
-    utils::{get_folders_by_drive, get_logical_drive_letters, get_window_position, match_folder_by_name, search_apps},
-    window::{WindowInfo, WindowManager},
+    config::MAX_LIST_SIZE, dto::{Application, SearchResultPayLoad, StorageData}, search::{application::search_applications_by_name, folder::search_folders_by_name}, utils::{get_logical_drive_letters, get_window_position}, window::{WindowInfo, WindowManager}
 };
 
 
 // 多线程搜索
-
 #[tauri::command]
 pub async fn async_search(name: &str) -> Result<StorageData, Vec<Application>> {
     let start = Instant::now();
     let mut result: Vec<SearchResultPayLoad> = Vec::new();
     // 获取应用程序
-    let apps: Vec<SearchResultPayLoad> = search_apps(name);
+    let apps: Vec<SearchResultPayLoad> = search_applications_by_name(name);
 
     if !apps.is_empty() {
         result.extend(apps);
     }
 
-    let dries = get_logical_drive_letters();
-    let folders: Arc<Mutex<Vec<SearchResultPayLoad>>> = Arc::new(Mutex::new(Vec::new()));
-    let mut handles = Vec::new();
+    // 获取磁盘
+    let drives = get_logical_drive_letters();
 
-    for drie in dries {
-    // for drie in dries {
-        let name_clone = name.to_owned();
-        let results_clone = Arc::clone(&folders);
-        let handle = thread::spawn(move || {
-            let start = Instant::now();
-            let folders = get_folders_by_drive(drie, MAX_DEPTH);
-            let folders = match_folder_by_name(folders, &name_clone);
-            let elapsed = Instant::now().duration_since(start);
-            println!("磁盘:{}, 遍历深度{} 找到条数{:?}, 耗时{}ms",drie, MAX_DEPTH, &folders.len(), elapsed.as_millis());
-            let mut results = results_clone.lock().unwrap();
-            results.extend(folders);
-        });
+    // 获取文件夹列表
+    let folder_list = search_folders_by_name(&name, drives);
 
-        handles.push(handle);
-    }
-
-    for handle in handles {
-        handle.join().unwrap();
+    if !folder_list.is_empty() {
+        result.extend(folder_list);
     }
 
     let elapsed = Instant::now().duration_since(start);
     println!("搜索总耗时{}ms", elapsed.as_millis());
-
-    let folders_result = folders.lock().unwrap(); 
-
-    if !folders_result.is_empty() {
-        // result.extend(&*folders_result);
-        let folders_result = folders_result.clone(); // 复制 MutexGuard
-        result.extend(folders_result);
-    }
 
     let limited_result = result
     .iter()
