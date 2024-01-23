@@ -1,5 +1,5 @@
-use std::{collections::HashMap, thread, time::Duration};
-use tauri::{AppHandle, LogicalSize, Manager, PhysicalPosition, Window};
+use std::collections::HashMap;
+use tauri::{AppHandle, LogicalSize, PhysicalPosition, Window};
 
 #[derive(Debug)]
 pub struct WindowInfo {

@@ -42,12 +42,12 @@ fn main() {
         .system_tray(tauri::SystemTray::new().with_menu(tray::tray_menu()))
         .on_system_tray_event(tray::tray_event)
         .invoke_handler(tauri::generate_handler![
-            command::search,
+            command::async_search,
             command::open,
             command::window_change,
             command::window_create,
             command::window_resize,
-            command::set_parent_window_info
+            command::set_parent_window_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

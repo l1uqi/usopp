@@ -87,13 +87,20 @@ async function getSearhResult(e: Event) {
   }
 
   timeout = setTimeout(async () => {
-    invoke("search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
+    invoke("async_search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
       const searchPayload = result as SearchPaylod;
       if (searchPayload.status) {
         loading.value = false;
         list.value = searchPayload.data;
       }
     });
+    // invoke("search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
+    //   const searchPayload = result as SearchPaylod;
+    //   if (searchPayload.status) {
+    //     loading.value = false;
+    //     list.value = searchPayload.data;
+    //   }
+    // });
 
   }, 500);
 }
