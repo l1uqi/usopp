@@ -1,13 +1,11 @@
 use std::path::Path;
 
-use usopp::{dto::{Application, FolderInfo}, storage::write_data, utils::{get_folder_info_recursive, get_logical_drive_letters, check_drive_exists}, config::{UNINSTALL_KEY, UNINSTALL_KEY_2, STORAGE_APPS_KEY, STORAGE_FOLDERS_KEY, MAX_DEPTH}};
+use usopp::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2, STORAGE_APPS_KEY}, dto::Application, storage::write_data};
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
 
 pub fn init_app() {
   let apps: Vec<Application> = get_application();
   write_data(STORAGE_APPS_KEY, serde_json::json!(apps));
-  let folder_list = get_folders();
-  write_data(STORAGE_FOLDERS_KEY, serde_json::json!(folder_list));
 }
 
 fn get_subkeys(reg_key: &RegKey) -> Vec<String> {
@@ -90,17 +88,4 @@ fn get_application() -> Vec<Application> {
   applications
 }
 
-// 获取文件夹信息
-fn get_folders() -> Vec<FolderInfo> {
-  // a-z盘符
-  let drive_letters = get_logical_drive_letters();
-  let mut folder_list = Vec::new();
-  for letter in drive_letters {
-    if check_drive_exists(letter) {
-      let drive_path = format!("{}:\\", letter);
-      folder_list.extend(get_folder_info_recursive(drive_path, MAX_DEPTH, 1));
-    }
-  }
-  folder_list
-}
 

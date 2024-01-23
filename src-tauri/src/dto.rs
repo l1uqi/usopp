@@ -12,7 +12,7 @@ pub struct Application {
   pub soft_size: u64,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Clone)]
 pub struct SearchResultPayLoad {
   pub name: String,
   pub text_name: String,
@@ -36,6 +36,12 @@ pub struct FolderInfo {
 pub struct StorageData {
     pub data: serde_json::Value,
     pub status: bool,
+}
+
+#[derive(Serialize, Debug)]
+pub struct SystemInfo {
+    pub cpu_usage: f32,
+    pub memory_usage: f64,
 }
 
 #[derive(Clone, Serialize)]

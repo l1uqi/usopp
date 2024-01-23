@@ -1,9 +1,9 @@
-use std::{path::{Path, PathBuf}, fs, io};
+use std::{path::{Path, PathBuf}, fs};
 
 use pinyin::{to_pinyin_vec, Pinyin};
 use tauri::PhysicalPosition;
 
-use crate::{dto::{Application, SearchResultPayLoad, FolderInfo}, icons::{get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}, storage::read_data, config::{STORAGE_APPS_KEY, STORAGE_FOLDERS_KEY}, enums::SearchPayLoadEvent};
+use crate::{dto::{Application, SearchResultPayLoad, FolderInfo}, icons::{get_icon, get_icon_bigmap, get_bitmap_buffer, save_icon_file}, storage::read_data, config::STORAGE_APPS_KEY};
 
 // 获取应用程序
 pub fn search_apps(name: &str) -> Vec<SearchResultPayLoad> {
@@ -44,59 +44,6 @@ pub fn search_apps(name: &str) -> Vec<SearchResultPayLoad> {
   apps_payload
 }
 
-// 获取文件夹
-pub fn search_folders(name: &str) -> Vec<SearchResultPayLoad> {
-  let mut folders: Vec<FolderInfo> = vec![];
-  let result = read_data(STORAGE_FOLDERS_KEY);
-  match result {
-      Ok(res) => {
-        folders = res.data.as_array().expect("Invalid data format")
-        .iter()
-        .map(|app| {
-            serde_json::from_value::<FolderInfo>(app.clone()).expect("Failed to deserialize")
-        })
-        .collect();
-      }
-      Err(e) => {
-          println!("{}", e);
-      }
-  }
-  let filtered_folders: Vec<&FolderInfo> = folders
-  .iter()
-  .filter(|app| app.name.to_lowercase().replace(" ", "").contains(&name))
-  .collect();
-
-  let mut folder_icon_path = String::new();
-
-  if !filtered_folders.is_empty() {
-    let folder_path = filtered_folders[0].path.clone();
-    if let Some(icon) = get_icon(&folder_path) {
-      if let Some(map) = get_icon_bigmap(icon) {
-        if let Some(buffer) = get_bitmap_buffer(map) {
-          folder_icon_path = save_icon_file(&buffer, "folder");
-        
-        }
-      }
-    }
-  }
-
-  let mut folder_payload: Vec<SearchResultPayLoad> = vec![];
-  filtered_folders.iter().for_each(|item| {
-    folder_payload.push(SearchResultPayLoad {
-      name: item.name.clone(),
-      text_name: item.name.clone(),
-      // r_type: SearchPayLoadEvent::Folder,
-      r_type: "Folder".to_string(),
-      r_publisher: None,
-      r_version: None,
-      r_main_pro_path: None,
-      r_exe_path: Some(item.path.clone()),
-      r_icon_path: Some(folder_icon_path.clone()),
-    })
-  });
-  folder_payload
-}
-
 pub fn create_folder(dir_name: &str) {
   let path = Path::new(&dir_name); // 将字符串转换为路径对象
   
@@ -126,7 +73,7 @@ pub fn get_pin_yin(parma: &str) -> String {
 pub fn get_folder_info_recursive(folder_path: String, max_depth: u32, current_depth: u32) -> Vec<FolderInfo> {
   let mut folder_list: Vec<FolderInfo> = Vec::new();
 
-  if current_depth > max_depth {
+  if current_depth > max_depth && max_depth != 0 {
     return folder_list;
   }
 
@@ -223,13 +170,15 @@ fn get_app_info(path: &str, app: &Application) -> SearchResultPayLoad {
   pay_load
 }
 
-
 // 获取盘符
 pub fn get_logical_drive_letters() ->  Vec<char> {
   let mut drive_letters: Vec<char> = Vec::new();
 
   for letter in b'A'..=b'Z' {
+    if check_drive_exists(letter as char) {
       drive_letters.push(letter as char);
+    }
+    
   }
 
   drive_letters
@@ -245,7 +194,6 @@ pub fn check_drive_exists(drive_letter: char) -> bool {
   }
 }
 
-
 // 获取窗口位置
 pub fn get_window_position(window: &tauri::Window) -> PhysicalPosition<i32> {
 
@@ -254,4 +202,50 @@ pub fn get_window_position(window: &tauri::Window) -> PhysicalPosition<i32> {
   }
  
   PhysicalPosition::new(0, 0)
+}
+
+// 通过路径获取文件夹信息
+pub fn get_folders_by_drive(letter: char, max_depth: u32) -> Vec<FolderInfo> {
+  let mut folder_list = Vec::new();
+  let drive_path = format!("{}:\\", letter);
+  folder_list.extend(get_folder_info_recursive(drive_path, max_depth, 1));
+  folder_list
+}
+
+pub fn match_folder_by_name(folder_list: Vec<FolderInfo>, name: &str) -> Vec<SearchResultPayLoad> {
+  let filtered_folders: Vec<FolderInfo> = folder_list
+  .into_iter()
+  .filter(|folder| folder.name.to_lowercase().replace(" ", "").contains(&name))
+  .collect();
+
+  let mut folder_icon_path = String::new();
+
+  if !filtered_folders.is_empty() {
+    let folder_path = filtered_folders[0].path.clone();
+    if let Some(icon) = get_icon(&folder_path) {
+      if let Some(map) = get_icon_bigmap(icon) {
+        if let Some(buffer) = get_bitmap_buffer(map) {
+          folder_icon_path = save_icon_file(&buffer, "folder");
+        
+        }
+      }
+    }
+  }
+
+  let mut folder_payload: Vec<SearchResultPayLoad> = vec![];
+  filtered_folders.iter().for_each(|item| {
+    folder_payload.push(SearchResultPayLoad {
+      name: item.name.clone(),
+      text_name: item.name.clone(),
+      // r_type: SearchPayLoadEvent::Folder,
+      r_type: "Folder".to_string(),
+      r_publisher: None,
+      r_version: None,
+      r_main_pro_path: None,
+      r_exe_path: Some(item.path.clone()),
+      r_icon_path: Some(folder_icon_path.clone()),
+    })
+  });
+
+  folder_payload
 }
