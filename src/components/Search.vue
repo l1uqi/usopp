@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { UnlistenFn, listen } from "@tauri-apps/api/event";
 import Result from "./Result.vue";
 import Webview from "./Webview.vue";
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Application, SearchPaylod } from "../type";
 
@@ -23,6 +24,8 @@ const webViewRef = ref<HTMLDivElement | null>(null);
 
 const isWebViewVisible = ref(false);
 
+let unlisten: Promise<UnlistenFn> | null = null;
+
 // 获取 WebView 组件的尺寸
 const getWebViewDimensions = () => {
   if (webViewRef.value) {
@@ -39,6 +42,13 @@ const getWebViewDimensions = () => {
 
 onMounted(() => {
   getWebViewDimensions();
+  unlisten = search_listen();
+})
+
+onBeforeUnmount(() => {
+  if(unlisten != null) {
+    unlisten = null;
+  }
 })
 
 function checkDirective(str: string) {
@@ -82,33 +92,40 @@ async function getSearhResult(e: Event) {
     loading.value = false;
     return list.value = [];
   }
+
+  list.value = [];
+
   if (timeout) {
     clearTimeout(timeout);
   }
 
   timeout = setTimeout(async () => {
-    invoke("async_search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
-      const searchPayload = result as SearchPaylod;
-      if (searchPayload.status) {
-        loading.value = false;
-        list.value = searchPayload.data;
-      }
-    });
-    // invoke("search", { name: inputValue, directive: matchDirective.value }).then((result: unknown) => {
-    //   const searchPayload = result as SearchPaylod;
-    //   if (searchPayload.status) {
-    //     loading.value = false;
-    //     list.value = searchPayload.data;
-    //   }
-    // });
-
+    invoke("async_search", { name: inputValue, directive: matchDirective.value });
   }, 500);
 }
 
-// const more = () => {
-//   isWebViewVisible.value = true;
-//   invoke("window_create", { label: "test11" });
-// }
+const search_listen = async () => {
+  return await listen<SearchPaylod>('search-result', search_callback);
+};
+
+
+const search_callback = async (event: { payload: { status: any; data: any; }; }) => {
+  const { status, data } = event.payload;
+  if (status === 'InProgress') {
+    list.value = list.value.concat(data);
+  }
+
+  if (status === 'Completed') {
+    loading.value = false;
+    list.value = data;
+    console.log(data);
+  }
+
+  if (status === 'Error') {
+    list.value = [];
+  }
+
+}
 
 </script>
 
@@ -138,7 +155,7 @@ async function getSearhResult(e: Event) {
       </svg></div> -->
   </div>
   <hr />
-  <Result :list="list" :directive="matchDirective" />
+  <Result :searchval="searchval" :list="list" :directive="matchDirective" />
   <Webview v-if="isWebViewVisible" ref="webViewRef" />
 </template>
 <style>
@@ -156,7 +173,7 @@ async function getSearhResult(e: Event) {
 }
 
 .search-input {
-  width: calc(100vw - 80px);
+  width: calc(100vw - 150px);
   font-size: 15px;
 }
 

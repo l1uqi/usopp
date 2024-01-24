@@ -1,4 +1,26 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize, Serializer};
+
+#[derive(Clone)]
+pub enum SearchStatus {
+  InProgress,
+  Completed,
+  Error,
+}
+
+impl Serialize for SearchStatus {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+      let status_str = match self {
+          SearchStatus::InProgress => "InProgress",
+          SearchStatus::Completed => "Completed",
+          SearchStatus::Error => "Error",
+      };
+      serializer.serialize_str(status_str)
+  }
+}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Application {
@@ -14,6 +36,12 @@ pub struct Application {
 
 #[derive(serde::Serialize, Clone)]
 pub struct SearchResultPayLoad {
+  pub status: SearchStatus,
+  pub data: Vec<SearchResult>
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+pub struct SearchResult {
   pub name: String,
   pub text_name: String,
   pub r_type: String,

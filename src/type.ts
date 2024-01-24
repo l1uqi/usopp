@@ -11,6 +11,6 @@ export type Application = {
 }
 
 export type SearchPaylod = {
-  status: boolean;
+  status: 'InProgress' | 'Completed' | 'Error';
   data: Array<Application>;
 }

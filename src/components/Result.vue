@@ -9,10 +9,15 @@ const selectIndex = ref(0);
 const props = defineProps({
   list: Array<Application>,
   directive: String,
+  searchval: String,
 });
 
 const list = computed(() => {
   return props.list;
+})
+
+const searchval = computed(() => {
+  return props.searchval;
 })
 
 const directive = computed(() => {
@@ -57,6 +62,11 @@ const handleMouseOver = (index: number) => {
 const handleOpen = (app: Application) => {
   invoke("open", { rType: app.r_type, path: app.r_exe_path, directive: directive.value });
 }
+
+const highlightText = (text: string) => {
+  const regex = new RegExp(searchval.value || '', 'gi');
+  return text.replace(regex, '<span class="highlight">$&</span>');
+}
 </script>
 
 <template>
@@ -69,7 +79,7 @@ const handleOpen = (app: Application) => {
         </div>
         <div class="content">
           <div class="title">
-            {{ item.text_name }}
+            <span v-html="highlightText(item.text_name)"></span>
           </div>
           <div class="description">
             {{ item.r_exe_path }}
@@ -123,5 +133,9 @@ const handleOpen = (app: Application) => {
   font-size: 14px;
   margin-top: 5px;
   color: gray;
+}
+
+.highlight {
+  color: rgb(231, 134, 36);
 }
 </style>
