@@ -2,9 +2,9 @@ use std::{fs, path::{Path, PathBuf}};
 
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
 
-use crate::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2}, dto::{Application, SearchResultPayLoad}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}, utils::get_pin_yin};
+use crate::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2}, dto::{Application, SearchResult}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}, utils::get_pin_yin};
 
-pub fn search_applications_by_name(name: &str) -> Vec<SearchResultPayLoad> {
+pub fn search_applications_by_name(name: &str) -> Vec<SearchResult> {
   let app_list = get_application_list();
   filter_applications_by_name(&name, &app_list)
 }
@@ -87,14 +87,14 @@ fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
 }
 
 // 获取应用程序
-pub fn filter_applications_by_name(name: &str, apps: &Vec<Application>) -> Vec<SearchResultPayLoad> {
+pub fn filter_applications_by_name(name: &str, apps: &Vec<Application>) -> Vec<SearchResult> {
   let py_name = get_pin_yin(name);
  
   let filtered_apps: Vec<&Application> = apps
   .iter()
   .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name) || get_pin_yin(&app.soft_name.to_lowercase().replace(" ", "")).contains(&py_name))
   .collect();
-  let mut apps_payload: Vec<SearchResultPayLoad> = Vec::new();
+  let mut apps_payload: Vec<SearchResult> = Vec::new();
 
   filtered_apps.iter().for_each(|item| {
     if !item.soft_uninstall_path.is_empty() {
@@ -157,8 +157,8 @@ fn get_folder_exe(dir_path: &str, app_name: String, icon_name: String) -> Vec<St
 }
 
 // 通过exe路径 获取应用信息
-fn get_app_info(path: &str, app: &Application) -> SearchResultPayLoad {
-  let mut pay_load = SearchResultPayLoad {
+fn get_app_info(path: &str, app: &Application) -> SearchResult {
+  let mut pay_load = SearchResult {
       name: app.name.clone(),
       text_name: app.soft_name.clone(),
       r_publisher: Some(app.soft_publisher.clone()),

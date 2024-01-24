@@ -1,14 +1,17 @@
 use std::{fs, sync::{Arc, Mutex}, thread, time::Instant};
 
-use crate::{config::MAX_DEPTH, dto::{FolderInfo, SearchResultPayLoad}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}};
+use tauri::Window;
 
-pub fn search_folders_by_name(name: &str, dries: Vec<char>) -> Vec<SearchResultPayLoad> {
+use crate::{config::{EXCLUDED_FOLDERS, MAX_DEPTH}, dto::{FolderInfo, SearchResult, SearchResultPayLoad, SearchStatus}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}};
+
+pub fn search_folders_by_name(window: &Window, name: &str, dries: Vec<char>) -> Vec<SearchResult> {
     // let dries = get_logical_drive_letters();
-    let folders: Arc<Mutex<Vec<SearchResultPayLoad>>> = Arc::new(Mutex::new(Vec::new()));
+    let folders: Arc<Mutex<Vec<SearchResult>>> = Arc::new(Mutex::new(Vec::new()));
     let mut handles = Vec::new();
 
     for drie in dries {
         let name_clone = name.to_owned();
+        let window_clone = window.clone();
         let results_clone = Arc::clone(&folders);
         let handle = thread::spawn(move || {
             let start = Instant::now();
@@ -23,6 +26,10 @@ pub fn search_folders_by_name(name: &str, dries: Vec<char>) -> Vec<SearchResultP
                 elapsed.as_millis()
             );
             let mut results = results_clone.lock().unwrap();
+            let _ = window_clone.emit("search-result", SearchResultPayLoad {
+              data: folders.clone(),
+              status: SearchStatus::InProgress
+           });
             results.extend(folders);
         });
 
@@ -62,7 +69,7 @@ fn get_folder_info_recursive(folder_path: String, max_depth: u32, current_depth:
             let folder_name = entry.file_name().to_string_lossy().to_string();
             let folder_path = entry.path();
             // 跳过隐藏目录
-            if folder_name.starts_with(".") {
+            if folder_name.starts_with(".") || EXCLUDED_FOLDERS.contains(&folder_name.as_str()) {
               continue;
             }
             let folder_info = FolderInfo {
@@ -80,7 +87,7 @@ fn get_folder_info_recursive(folder_path: String, max_depth: u32, current_depth:
   folder_list
 }
 
-fn filter_folder_by_name(folder_list: Vec<FolderInfo>, name: &str) -> Vec<SearchResultPayLoad> {
+fn filter_folder_by_name(folder_list: Vec<FolderInfo>, name: &str) -> Vec<SearchResult> {
   let filtered_folders: Vec<FolderInfo> = folder_list
   .into_iter()
   .filter(|folder| folder.name.to_lowercase().replace(" ", "").contains(&name))
@@ -100,9 +107,9 @@ fn filter_folder_by_name(folder_list: Vec<FolderInfo>, name: &str) -> Vec<Search
     }
   }
 
-  let mut folder_payload: Vec<SearchResultPayLoad> = vec![];
+  let mut folder_payload: Vec<SearchResult> = vec![];
   filtered_folders.iter().for_each(|item| {
-    folder_payload.push(SearchResultPayLoad {
+    folder_payload.push(SearchResult {
       name: item.name.clone(),
       text_name: item.name.clone(),
       // r_type: SearchPayLoadEvent::Folder,
