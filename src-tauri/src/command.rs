@@ -54,7 +54,6 @@ pub async fn async_search(window: Window, name: &str) -> Result<(), String> {
         }
     });
     
-
     // 提取匹配度最高的前 50 条结果
     let top_results: Vec<SearchResult> = sorted_results.into_iter()
     .take(MAX_LIST_SIZE)
@@ -65,11 +64,7 @@ pub async fn async_search(window: Window, name: &str) -> Result<(), String> {
         data: top_results,
         status: SearchStatus::Completed
     });
-     Ok(())
-    // Ok(StorageData {
-    //     data: serde_json::to_value(limited_result).unwrap(),
-    //     status: true,
-    // })
+    Ok(())
 }
 
 #[tauri::command]
