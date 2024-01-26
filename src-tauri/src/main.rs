@@ -43,6 +43,7 @@ fn main() {
         .on_system_tray_event(tray::tray_event)
         .invoke_handler(tauri::generate_handler![
             command::async_search,
+            command::sorted,
             command::open,
             command::window_change,
             command::window_create,

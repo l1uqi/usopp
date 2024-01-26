@@ -2,10 +2,10 @@ use std::{fs, path::{Path, PathBuf}};
 
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
 
-use crate::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2}, dto::{Application, SearchResult}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}, utils::get_pin_yin};
+use crate::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2}, dto::{Application, FileType, SearchResult}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}, utils::get_pin_yin};
 
 pub fn search_applications_by_name(name: &str) -> Vec<SearchResult> {
-  let app_list = get_application_list();
+  let app_list: Vec<Application> = get_application_list();
   filter_applications_by_name(&name, &app_list)
 }
 
@@ -166,7 +166,7 @@ fn get_app_info(path: &str, app: &Application) -> SearchResult {
       r_exe_path: Some(path.to_owned()),
       r_main_pro_path: Some(app.soft_main_pro_path.clone()),
       r_icon_path: None,
-      r_type: "Application".to_string()
+      r_type: FileType::Application
       // soft_icon_buffer: vec![],
   };
   

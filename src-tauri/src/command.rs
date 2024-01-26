@@ -1,75 +1,50 @@
 use std::{
-    sync::{Arc, Mutex},
-    time::Instant,
+    sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::{Duration, Instant}
 };
-use strsim::levenshtein;
 use tokio::process::Command;
 
 use tauri::{LogicalSize, State, Window};
 use usopp::{
-    config::MAX_LIST_SIZE, dto::{Application, SearchResult, SearchResultPayLoad, SearchStatus, StorageData}, search::{application::search_applications_by_name, folder::search_folders_by_name}, utils::{get_logical_drive_letters, get_window_position}, window::{WindowInfo, WindowManager}
+     dto::{SearchResult, SearchResultPayLoad, SearchStatus, StorageData}, search::file::search_files_by_name, utils::{get_logical_drive_letters, get_sorted_result, get_window_position}, window::{WindowInfo, WindowManager}
 };
 
+
+#[tauri::command]
+pub fn sorted(data: Vec<SearchResult>, name: &str) -> Result<StorageData, Vec<SearchResult>> {
+    let result = get_sorted_result(data, name);
+    Ok(StorageData {
+        data: serde_json::to_value(result).unwrap(),
+        status: true,
+    })
+}
 
 // 多线程搜索
 #[tauri::command]
 pub async fn async_search(window: Window, name: &str) -> Result<(), String> {
-    let start = Instant::now();
+    let should_abort = Arc::new(AtomicBool::new(true));
+    let start: Instant = Instant::now();
     let mut result: Vec<SearchResult> = Vec::new();
-    // 获取应用程序
-    let apps: Vec<SearchResult> = search_applications_by_name(name);
-
-    if !apps.is_empty() {
-        let _ = window.emit("search-result", SearchResultPayLoad {
-           data: apps.clone(),
-           status: SearchStatus::InProgress
-        });
-        result.extend(apps);
-    }
-
-    // 获取磁盘
+    
     let drives = get_logical_drive_letters();
+    // 等待一段时间，以确保线程有机会中断搜索
+    thread::sleep(Duration::from_millis(100));
+    should_abort.store(false, Ordering::SeqCst);
+    let file_list = search_files_by_name(&window, &name, drives);
 
-    // 获取文件夹列表
-    let folder_list = search_folders_by_name(&window, &name, drives);
-
-    if !folder_list.is_empty() {
-        result.extend(folder_list);
+    if !file_list.is_empty() {
+        result.extend(file_list);
     }
 
     let elapsed = Instant::now().duration_since(start);
     println!("搜索总耗时{}ms", elapsed.as_millis());
 
-    // 根据 Levenshtein 距离排序结果
-    let mut sorted_results: Vec<(SearchResult, usize)> = result.into_iter()
-    .map(|result| (result.clone(), levenshtein(&result.name, name)))
-    .collect();
-
-    sorted_results.sort_by(|(result1, dist1), (result2, dist2)| {
-        match (result1.r_type.as_str(), result2.r_type.as_str()) {
-            ("Application", "Application") => dist1.cmp(dist2),
-            ("Application", _) => std::cmp::Ordering::Less,
-            (_, "Application") => std::cmp::Ordering::Greater,
-            _ => dist1.cmp(dist2),
-        }
-    });
-    
-
-    // 提取匹配度最高的前 50 条结果
-    let top_results: Vec<SearchResult> = sorted_results.into_iter()
-    .take(MAX_LIST_SIZE)
-    .map(|(result, _)| result)
-    .collect();
+    let result = get_sorted_result(result, name);
 
     let _ = window.emit("search-result", SearchResultPayLoad {
-        data: top_results,
+        data: result,
         status: SearchStatus::Completed
     });
-     Ok(())
-    // Ok(StorageData {
-    //     data: serde_json::to_value(limited_result).unwrap(),
-    //     status: true,
-    // })
+    Ok(())
 }
 
 #[tauri::command]
