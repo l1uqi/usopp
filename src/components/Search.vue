@@ -101,7 +101,7 @@ async function getSearhResult(e: Event) {
 
   timeout = setTimeout(async () => {
     invoke("async_search", { name: inputValue, directive: matchDirective.value });
-  }, 500);
+  }, 1000);
 }
 
 const search_listen = async () => {
@@ -112,13 +112,14 @@ const search_listen = async () => {
 const search_callback = async (event: { payload: { status: any; data: any; }; }) => {
   const { status, data } = event.payload;
   if (status === 'InProgress') {
-    list.value = list.value.concat(data);
+    let result = list.value.concat(data);
+    let payload: SearchPaylod = await invoke("sorted", { data: result, name: searchval.value });
+    list.value = payload.data;
   }
 
   if (status === 'Completed') {
     loading.value = false;
     list.value = data;
-    console.log(data);
   }
 
   if (status === 'Error') {
