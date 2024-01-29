@@ -41,6 +41,16 @@
     "security": {
       "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-inline' 'self' img-src:; script-src http: https: 'unsafe-inline';"
     },
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3RjE4OEY3QTc0OTQzQjgKUldTNFEwbW45NGp4VjhMRk01amdlam1uR01aOFlyZ3Q0SHA2U09ETDZWUUdiZ0FQYThLWWh5b0QK",
+      "endpoints": ["https://liboq.github.io/usoop/install.json"],
+      "windows": {
+        "installMode": "passive",
+        "installerArgs": []
+      }
+    },
     "bundle": {
       "active": true,
       "targets": "all",
