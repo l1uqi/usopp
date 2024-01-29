@@ -1,4 +1,4 @@
-export type FileType = 'Application' | 'JPG' | 'PNG' | 'Folder' | 'PDF' | 'GIF' | 'JS';
+export type FileType = 'Application' | 'TXT' | 'JPG' | 'PNG' | 'Folder' | 'PDF' | 'GIF' | 'JS' | 'DOC' | 'XLSX' | 'PPT' | 'LNK';
 export type Application = {
   name: string,
   text_name: string,

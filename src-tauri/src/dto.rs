@@ -39,12 +39,17 @@ impl<'de> Deserialize<'de> for SearchStatus {
 #[derive(Clone, Copy, Debug)]
 pub enum FileType {
     Application,
+    LNK,
     Folder,
     File,
+    TXT,
     PDF,
     JPG,
     GIF,
     PNG,
+    XLSX,
+    PPT,
+    DOC,
     JS
 }
 
@@ -55,12 +60,17 @@ impl Serialize for FileType {
     {
         let type_str = match self {
             FileType::Application => "Application",
+            FileType::LNK => "LNK",
+            FileType::TXT => "TXT",
             FileType::JPG => "JPG",
             FileType::PNG => "PNG",
             FileType::GIF => "GIF",
             FileType::Folder => "Folder",
             FileType::File => "File",
             FileType::PDF => "PDF",
+            FileType::XLSX => "XLSX",
+            FileType::PPT => "PPT",
+            FileType::DOC => "DOC",
             FileType::JS => "JS",
         };
         serializer.serialize_str(type_str)
@@ -76,11 +86,16 @@ impl<'de> Deserialize<'de> for FileType {
         match status_str {
             "Application" => Ok(FileType::Application),
             "JPG" => Ok(FileType::JPG),
+            "LNK" => Ok(FileType::LNK),
+            "TXT" => Ok(FileType::TXT),
             "PNG" => Ok(FileType::PNG),
             "GIF" => Ok(FileType::GIF),
             "Folder" => Ok(FileType::Folder),
             "File" => Ok(FileType::File),
             "PDF" => Ok(FileType::PDF),
+            "XLSX" => Ok(FileType::XLSX),
+            "PPT" => Ok(FileType::PPT),
+            "DOC" => Ok(FileType::DOC),
             "JS" => Ok(FileType::JS),
             _ => Err(serde::de::Error::custom("Invalid FileType value")),
         }

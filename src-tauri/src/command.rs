@@ -1,11 +1,11 @@
 use std::{
-    sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::{Duration, Instant}
+     sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::{Duration, Instant}
 };
 use tokio::process::Command;
 
 use tauri::{LogicalSize, State, Window};
 use usopp::{
-     dto::{SearchResult, SearchResultPayLoad, SearchStatus, StorageData}, search::file::search_files_by_name, utils::{get_logical_drive_letters, get_sorted_result, get_window_position}, window::{WindowInfo, WindowManager}
+     dto::{FileType, SearchResult, SearchResultPayLoad, SearchStatus, StorageData}, search::file::search_files_by_name, utils::{get_logical_drive_letters, get_sorted_result, get_window_position}, window::{WindowInfo, WindowManager}
 };
 
 
@@ -48,14 +48,9 @@ pub async fn async_search(window: Window, name: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn open(_window: Window, r_type: &str, path: &str, directive: &str) {
+pub fn open(_window: Window, r_type: FileType, path: &str, directive: &str) {
     match r_type {
-        "Application" => {
-            Command::new(path)
-                .spawn()
-                .expect("Failed to open application");
-        }
-        "Folder" => {
+        FileType::Folder => {
             if directive.is_empty() {
                 let mut command = Command::new("explorer");
                 command.arg(path);
@@ -68,11 +63,15 @@ pub fn open(_window: Window, r_type: &str, path: &str, directive: &str) {
                 let _ = cmd.spawn().map_err(|e| e.to_string());
             }
             if directive == "idea" {
-
+                
             }
         }
-
-        _ => {}
+        _ => {
+            let _ = Command::new("cmd")
+            .args(&["/C", "start", path])
+            .spawn()
+            .map_err(|e| e.to_string());
+        }
     }
 }
 
