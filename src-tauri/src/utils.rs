@@ -84,11 +84,17 @@ pub fn get_sorted_result(result: Vec<SearchResult>, name: &str) -> Vec<SearchRes
                 let path_buf = PathBuf::from(&path);
                 let file_type = match path_buf.extension().and_then(|ext| ext.to_str()) {
                     Some("exe") => FileType::Application,
+                    Some("lnk") => FileType::LNK,
+                    Some("txt") => FileType::TXT,
                     Some("pdf") => FileType::PDF,
                     Some("jpg") => FileType::JPG,
                     Some("gif") => FileType::GIF,
                     Some("png") => FileType::PNG,
                     Some("js") => FileType::JS,
+                    Some("xlsx") => FileType::XLSX,
+                    Some("ppt") => FileType::PPT,
+                    Some("pptx") => FileType::PPT,
+                    Some("doc") => FileType::DOC,
                     _ => {
                         if path_buf.is_dir() {
                             FileType::Folder
@@ -100,7 +106,7 @@ pub fn get_sorted_result(result: Vec<SearchResult>, name: &str) -> Vec<SearchRes
                 };
                 let r_icon_path = match file_type {
                     FileType::Application => Some(get_file_icon(&path, &result.name)),
-                    FileType::File => Some(get_file_icon(&path, &result.name)),
+                    // FileType::File => Some(get_file_icon(&path, &result.name)),
                     _ => None,
                 };
                 result.r_type = file_type;

@@ -1,19 +1,25 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri + Vue + TS</title>
-  </head>
 
-  <body>
-    <div id="app" data-tauri-drag-region></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-  <style>
-    body {
-      margin: 0px;
-    }
-  </style>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="
+        default-src blob: data: filesystem: ws: wss: http: https: tauri: 'self' img-src: 'unsafe-inline';
+        script-src http: https: 'self' 'unsafe-inline';
+      ">
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tauri + Vue + TS</title>
+</head>
+
+<body>
+  <div id="app" data-tauri-drag-region></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+<style>
+  body {
+    margin: 0px;
+  }
+</style>
+
 </html>
