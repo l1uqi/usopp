@@ -3,7 +3,7 @@ pub const STORAGE_APPS_KEY: &str = "apps";
 // 文件列表
 pub const STORAGE_FOLDERS_KEY: &str = "folders";
 // 排除文件夹列表
-pub const EXCLUDED_FOLDERS: &[&str] = &["node_modules", "tmp", "dist", "logs", "log"];
+pub const EXCLUDED_FOLDERS: &[&str] = &["node_modules", "Temp", "Windows", "AppData", "SysWOW64", "Microsoft SDKs", "tmp", "dist", "logs", "log", "npm-cache", "cache", "pnpm"];
 // 应用列表注册表
 pub const UNINSTALL_KEY: &str = "Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
 // 应用列表注册表

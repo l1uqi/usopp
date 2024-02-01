@@ -7,3 +7,4 @@ pub mod enums;
 pub mod window;
 pub mod sysinfo;
 pub mod search;
+pub mod database;

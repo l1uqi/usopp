@@ -14,7 +14,6 @@ let timeout: number | null | undefined = null;
 
 const container = ref(null);
 
-
 const mutationObserver = new MutationObserver(() => {
   if (!container.value) return;
   let height = parseFloat(window.getComputedStyle(container.value).getPropertyValue('height'));
@@ -31,11 +30,7 @@ onMounted(() => {
       subtree: true // 是否将观察器应用于该节点的所有后代节点
     });
   }
-
-
 })
-
-
 
 appWindow.listen(TauriEvent.WINDOW_MOVED, () => {
   isDragging = true;
@@ -46,7 +41,6 @@ appWindow.listen(TauriEvent.WINDOW_MOVED, () => {
     isDragging = false;
   }, 500); // 设置延迟时间，单位为毫秒
 });
-
 
 appWindow.listen(TauriEvent.WINDOW_FOCUS, () => {
   if (!isDragging) {

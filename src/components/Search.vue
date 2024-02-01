@@ -37,7 +37,6 @@ const getWebViewDimensions = () => {
 
     invoke("set_parent_window_info", { width: webViewWidth, height: webViewHeight, top: webViewTop })
   }
-
 };
 
 onMounted(() => {
@@ -95,19 +94,12 @@ async function getSearhResult(e: Event) {
 
   list.value = [];
 
-  if (timeout) {
-    clearTimeout(timeout);
-  }
-
-  timeout = setTimeout(async () => {
-    invoke("async_search", { name: inputValue, directive: matchDirective.value });
-  }, 1000);
+  invoke("async_search", { name: inputValue, directive: matchDirective.value });
 }
 
 const search_listen = async () => {
   return await listen<SearchPaylod>('search-result', search_callback);
 };
-
 
 const search_callback = async (event: { payload: { status: any; data: any; }; }) => {
   const { status, data } = event.payload;
@@ -125,16 +117,14 @@ const search_callback = async (event: { payload: { status: any; data: any; }; })
   if (status === 'Error') {
     list.value = [];
   }
-
 }
-
 </script>
 
 <template>
   <div class="search" data-tauri-drag-region>
     <img src="/logo.png" class="search-logo logo" alt="logo" />
     <span v-if="matchDirective" class="directive fade-in">{{ matchDirective }}</span>
-    <input id="search-input" @focus="handleFocus" @keydown="handleKeyDown" @keyup.enter="getSearhResult" class="search-input"
+    <input id="search-input" @focus="handleFocus" @keydown="handleKeyDown" @input="getSearhResult" class="search-input"
       v-model="searchval" placeholder="Supporting application and file search..." />
     <svg v-show="loading" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 25 25">
       <g fill="none" stroke="#87CEFA" stroke-linecap="round" stroke-width="2">

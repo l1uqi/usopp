@@ -1,9 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use init::init_app;
+use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, WindowEvent};
+use tokio::task;
+use usopp::database::IndexDatabase;
+use usopp::dto::{FileEntry, Manage};
 use usopp::window::WindowManager;
-
 
 mod command;
 mod init;
@@ -11,32 +15,43 @@ mod tray;
 mod window;
 
 fn setup<'a>(app: &'a mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    
     let handle = app.handle();
+    let database = IndexDatabase::new();
+    let mutex_database = Arc::new(Mutex::new(database));
     let mutex_wins: Arc<Mutex<WindowManager>> =
         Arc::new(Mutex::new(WindowManager::new(handle.clone())));
 
     if let Some(main_win) = app.app_handle().get_window("usopp") {
         let mutex_wins_clone = mutex_wins.clone();
         // 当前主窗口加入到windows中
-        mutex_wins_clone.lock().unwrap().set_window("usopp", main_win.clone());
-        main_win.on_window_event(move | event | {
-            match event {
-                WindowEvent::Moved(position) => {
-                    let p = position.clone();
-                    mutex_wins_clone.lock().unwrap().update_window_position(p)
-                    
-                }
-                _ => {}
+        mutex_wins_clone
+            .lock()
+            .unwrap()
+            .set_window("usopp", main_win.clone());
+        main_win.on_window_event(move |event| match event {
+            WindowEvent::Moved(position) => {
+                let p: tauri::PhysicalPosition<i32> = position.clone();
+                mutex_wins_clone.lock().unwrap().update_window_position(p)
             }
+            _ => {}
         });
-        app.manage(mutex_wins);
+        let mutex_database_clone = mutex_database.clone();
+        let mange = Manage {
+            win: mutex_wins,
+            database: mutex_database_clone,
+        };
+        app.manage(mange);
     }
+    let mutex_database_clone = mutex_database.clone();
+    task::spawn(async {
+        init_app(mutex_database_clone).await;
+    });
+
     Ok(())
 }
 
-fn main() {
-    init::init_app();
+#[tokio::main]
+async fn main() {
     tauri::Builder::default()
         .setup(setup)
         .system_tray(tauri::SystemTray::new().with_menu(tray::tray_menu()))

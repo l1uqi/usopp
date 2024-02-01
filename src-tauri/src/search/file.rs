@@ -1,6 +1,6 @@
 use std::{
     fs,
-    sync::{ Arc, Mutex},
+    sync::{Arc, Mutex},
     thread,
     time::Instant,
 };
@@ -9,18 +9,18 @@ use tauri::Window;
 
 use crate::{
     config::{EXCLUDED_FOLDERS, MAX_DEPTH},
-    dto::{FileType, SearchResult, SearchResultPayLoad, SearchStatus}
+    dto::{FileType, FileEntry, PayLoad, SearchStatus},
 };
 
-pub fn search_files_by_name(window: &Window, name: &str, dries: Vec<char>) -> Vec<SearchResult> {
+pub fn search_files_by_name(window: &Window, name: &str, dries: Vec<char>) -> Vec<FileEntry> {
     // let dries = get_logical_drive_letters();
-    let folders: Arc<Mutex<Vec<SearchResult>>> = Arc::new(Mutex::new(Vec::new()));
+    let folders: Arc<Mutex<Vec<FileEntry>>> = Arc::new(Mutex::new(Vec::new()));
     let mut handles = Vec::new();
 
     for drie in dries {
         let name_clone = name.to_owned();
         let window_clone = window.clone();
-        let results_clone = Arc::clone(&folders);
+        let results_clone: Arc<Mutex<Vec<FileEntry>>> = Arc::clone(&folders);
         let handle = thread::spawn(move || {
             let start = Instant::now();
             // let file_list = get_file_list_by_name(&name_clone, drie, MAX_DEPTH);
@@ -34,9 +34,8 @@ pub fn search_files_by_name(window: &Window, name: &str, dries: Vec<char>) -> Ve
             let file_list = file_info_to_result_info(file_list, &name_clone);
             let elapsed = Instant::now().duration_since(start);
             println!(
-                "磁盘:{}, 遍历文件深度:{} 找到条数{:?}, 耗时{}ms",
+                "磁盘:{}, 找到条数{:?}, 耗时{}ms",
                 drie,
-                MAX_DEPTH,
                 &file_list.len(),
                 elapsed.as_millis()
             );
@@ -69,8 +68,8 @@ fn get_file_list_info(
     name: &str,
     file_path: String,
     max_depth: u32,
-) -> Vec<SearchResult> {
-    let mut files: Vec<SearchResult> = Vec::new();
+) -> Vec<FileEntry> {
+    let mut files: Vec<FileEntry> = Vec::new();
 
     if let Ok(entries) = fs::read_dir(&file_path) {
         let mut thread_handles = Vec::new();
@@ -97,24 +96,24 @@ fn get_file_list_info(
                             );
                             let duration = start_time.elapsed();
 
-                            let result: Vec<SearchResult> = result
+                            let result: Vec<FileEntry> = result
                                 .into_iter()
-                                .filter(|file: &SearchResult| {
+                                .filter(|file: &FileEntry| {
                                     file.name
                                         .to_lowercase()
                                         .replace(" ", "")
                                         .contains(&name_clone)
                                 })
                                 .collect();
-                            println!(
-                                "线程执行完成，目录: {}, 执行时间: {:?}, 匹配数: {}",
-                                f_path.to_string_lossy(),
-                                duration,
-                                result.len()
-                            );
+                            // println!(
+                            //     "线程执行完成，目录: {}, 执行时间: {:?}, 匹配数: {}",
+                            //     f_path.to_string_lossy(),
+                            //     duration,
+                            //     result.len()
+                            // );
                             let _ = window_clone.emit(
                                 "search-result",
-                                SearchResultPayLoad {
+                                PayLoad {
                                     data: result.clone(),
                                     status: SearchStatus::InProgress,
                                 },
@@ -126,8 +125,6 @@ fn get_file_list_info(
                 }
             }
         }
-
-        println!("磁盘: {}, 开启线程数: {}", file_path, thread_handles.len());
 
         for handle in thread_handles {
             if let Ok(subdirectories) = handle.join() {
@@ -145,8 +142,8 @@ fn get_file_list_info_recursive(
     file_path: String,
     max_depth: u32,
     current_depth: u32,
-) -> Vec<SearchResult> {
-    let mut file_list: Vec<SearchResult> = Vec::new();
+) -> Vec<FileEntry> {
+    let mut file_list: Vec<FileEntry> = Vec::new();
 
     if current_depth > max_depth && max_depth != 0 {
         return file_list;
@@ -161,19 +158,16 @@ fn get_file_list_info_recursive(
                     let path: String = f_path.to_string_lossy().to_string();
                     if file_type.is_dir() {
                         // 跳过隐藏目录
-                        if f_name.starts_with(".") || EXCLUDED_FOLDERS.contains(&f_name.as_str()) {
+                        if f_name.starts_with(".") || f_name.starts_with("$") || EXCLUDED_FOLDERS.contains(&f_name.as_str()) {
                             continue;
                         }
 
-                        let f_info = SearchResult {
+                        let f_info = FileEntry {
                             name: f_name.clone(),
-                            text_name: f_name.clone(),
-                            r_publisher: None,
-                            r_version: None,
-                            r_main_pro_path: None,
-                            r_exe_path: Some(path.clone()),
-                            r_icon_path: None,
-                            r_type: FileType::Folder,
+                            size: None,
+                            path: path.clone(),
+                            icon_path: None,
+                            file_type: FileType::Directory,
                         };
                         file_list.push(f_info);
 
@@ -185,17 +179,13 @@ fn get_file_list_info_recursive(
                         );
                         file_list.extend(subdirectories);
                     } else {
-                        
                         if f_name.to_lowercase().replace(" ", "").contains(&name) {
-                            let f_info = SearchResult {
+                            let f_info = FileEntry {
                                 name: f_name.clone(),
-                                text_name: f_name.clone(),
-                                r_type: FileType::File,
-                                r_publisher: None,
-                                r_version: None,
-                                r_main_pro_path: None,
-                                r_exe_path: Some(path.clone()),
-                                r_icon_path: None,
+                                file_type: FileType::File,
+                                path: path.clone(),
+                                icon_path: None,
+                                size: None
                             };
                             file_list.push(f_info);
                         }
@@ -207,7 +197,7 @@ fn get_file_list_info_recursive(
     file_list
 }
 
-fn file_info_to_result_info(file_list: Vec<SearchResult>, name: &str) -> Vec<SearchResult> {
+fn file_info_to_result_info(file_list: Vec<FileEntry>, name: &str) -> Vec<FileEntry> {
     // 过滤文件夹
     file_list
         .into_iter()

@@ -18,6 +18,9 @@
     },
     "allowlist": {
       "all": false,
+      "notification": {
+        "all": true
+      },
       "window": {
         "startDragging": true,
         "show": true,

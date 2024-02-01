@@ -1,14 +1,11 @@
-export type FileType = 'Application' | 'TXT' | 'JPG' | 'PNG' | 'Folder' | 'PDF' | 'GIF' | 'JS' | 'DOC' | 'XLSX' | 'PPT' | 'LNK';
+export type FileType = 'Application' | 'TXT' | 'JPG' | 'PNG' | 'ZIP' | 'Directory' | 'PDF' | 'GIF' | 'JS' | 'DOC' | 'XLSX' | 'PPT' | 'LNK';
 export type Application = {
   name: string,
-  text_name: string,
-  r_type: FileType,
-  r_install: string,
-  r_publisher: string,
-  r_icon_buffer: Array<number>,
-  r_icon_path: string,
-  r_exe_path: string,
-  url: string
+  path: string,
+  file_type: FileType,
+  icon_path: string,
+  url: string,
+  size: string
 }
 
 export type SearchPaylod = {

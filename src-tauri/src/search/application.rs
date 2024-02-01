@@ -2,9 +2,9 @@ use std::{fs, path::{Path, PathBuf}};
 
 use winreg::{RegKey, enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ}};
 
-use crate::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2}, dto::{Application, FileType, SearchResult}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}, utils::get_pin_yin};
+use crate::{config::{UNINSTALL_KEY, UNINSTALL_KEY_2}, dto::{Application, FileType, FileEntry}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}, utils::get_pin_yin};
 
-pub fn search_applications_by_name(name: &str) -> Vec<SearchResult> {
+pub fn search_applications_by_name(name: &str) -> Vec<FileEntry> {
   let app_list: Vec<Application> = get_application_list();
   filter_applications_by_name(&name, &app_list)
 }
@@ -87,14 +87,14 @@ fn get_application_info(reg_key: &RegKey, subkey: &str) -> Option<Application> {
 }
 
 // 获取应用程序
-pub fn filter_applications_by_name(name: &str, apps: &Vec<Application>) -> Vec<SearchResult> {
+pub fn filter_applications_by_name(name: &str, apps: &Vec<Application>) -> Vec<FileEntry> {
   let py_name = get_pin_yin(name);
  
   let filtered_apps: Vec<&Application> = apps
   .iter()
   .filter(|app| app.soft_name.to_lowercase().replace(" ", "").contains(&name) || get_pin_yin(&app.soft_name.to_lowercase().replace(" ", "")).contains(&py_name))
   .collect();
-  let mut apps_payload: Vec<SearchResult> = Vec::new();
+  let mut apps_payload: Vec<FileEntry> = Vec::new();
 
   filtered_apps.iter().for_each(|item| {
     if !item.soft_uninstall_path.is_empty() {
@@ -157,23 +157,20 @@ fn get_folder_exe(dir_path: &str, app_name: String, icon_name: String) -> Vec<St
 }
 
 // 通过exe路径 获取应用信息
-fn get_app_info(path: &str, app: &Application) -> SearchResult {
-  let mut pay_load = SearchResult {
+fn get_app_info(path: &str, app: &Application) -> FileEntry {
+  let mut pay_load = FileEntry {
       name: app.name.clone(),
-      text_name: app.soft_name.clone(),
-      r_publisher: Some(app.soft_publisher.clone()),
-      r_version: Some(app.soft_version.clone()),
-      r_exe_path: Some(path.to_owned()),
-      r_main_pro_path: Some(app.soft_main_pro_path.clone()),
-      r_icon_path: None,
-      r_type: FileType::Application
+      path: path.to_owned(),
+      icon_path: None,
+      file_type: FileType::Application,
+      size: None
       // soft_icon_buffer: vec![],
   };
   
   if let Some(icon) = get_icon(&path) {
     if let Some(map) = get_icon_bigmap(icon) {
       if let Some(buffer) = get_bitmap_buffer(map) {
-        pay_load.r_icon_path = Some(save_icon_file(&buffer, &app.soft_name));
+        pay_load.icon_path = Some(save_icon_file(&buffer, &app.soft_name));
         // pay_load.soft_icon_buffer = buffer;
       }
     }
