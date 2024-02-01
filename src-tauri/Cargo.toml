@@ -13,7 +13,7 @@ edition = "2021"
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-tauri = { version = "1.5", features = [ "devtools", "updater", "window-show", "window-hide", "window-start-dragging", "global-shortcut-all", "system-tray", "protocol-asset", "macos-private-api", "shell-open"] }
+tauri = { version = "1.5", features = [ "notification-all", "devtools", "updater", "window-show", "window-hide", "window-start-dragging", "global-shortcut-all", "system-tray", "protocol-asset", "macos-private-api", "shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 winreg = "0.52.0"
@@ -28,6 +28,8 @@ pinyin = "0.10"
 tokio = { version = "1.35.1", features = ["full"] }
 sysinfo = "0.30.5"
 strsim = "0.11.0"
+rusqlite = { version = "0.30.0", features = ["bundled"] }
+lazy_static = "1.4.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

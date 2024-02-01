@@ -9,7 +9,7 @@ use tauri::PhysicalPosition;
 
 use crate::{
     config::MAX_LIST_SIZE,
-    dto::{FileType, SearchResult},
+    dto::{FileType, FileEntry},
     icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file},
 };
 
@@ -75,18 +75,18 @@ pub fn get_window_position(window: &tauri::Window) -> PhysicalPosition<i32> {
 }
 
 // 获取排序后结果
-pub fn get_sorted_result(result: Vec<SearchResult>, name: &str) -> Vec<SearchResult> {
-    let result: Vec<SearchResult> = result
+pub fn get_sorted_result(result: Vec<FileEntry>, name: &str) -> Vec<FileEntry> {
+    let result: Vec<FileEntry> = result
         .clone()
         .into_iter()
         .map(|mut result| {
-            if let Some(path) = result.r_exe_path.clone() {
-                let path_buf = PathBuf::from(&path);
+            let path_buf = PathBuf::from(&result.path);
                 let file_type = match path_buf.extension().and_then(|ext| ext.to_str()) {
                     Some("exe") => FileType::Application,
                     Some("lnk") => FileType::LNK,
                     Some("txt") => FileType::TXT,
                     Some("pdf") => FileType::PDF,
+                    Some("zip") => FileType::ZIP,
                     Some("jpg") => FileType::JPG,
                     Some("gif") => FileType::GIF,
                     Some("png") => FileType::PNG,
@@ -97,33 +97,31 @@ pub fn get_sorted_result(result: Vec<SearchResult>, name: &str) -> Vec<SearchRes
                     Some("doc") => FileType::DOC,
                     _ => {
                         if path_buf.is_dir() {
-                            FileType::Folder
+                            FileType::Directory
                         } else {
                             // Handle other unknown file types
                             FileType::File
                         }
                     }
                 };
-                let r_icon_path = match file_type {
-                    FileType::Application => Some(get_file_icon(&path, &result.name)),
+                let icon_path = match file_type {
+                    FileType::Application => Some(get_file_icon(&result.path, &result.name)),
                     // FileType::File => Some(get_file_icon(&path, &result.name)),
                     _ => None,
                 };
-                result.r_type = file_type;
-                result.r_icon_path = r_icon_path;
-            }
-
+                result.file_type = file_type;
+                result.icon_path = icon_path;
             result
         })
         .collect();
     // 根据 Levenshtein 距离排序结果
-    let mut sorted_results: Vec<(SearchResult, usize)> = result
+    let mut sorted_results: Vec<(FileEntry, usize)> = result
         .into_iter()
         .map(|result| (result.clone(), levenshtein(&result.name, name)))
         .collect();
 
     sorted_results.sort_by(|(result1, dist1), (result2, dist2)| {
-        match (result1.r_type, result2.r_type) {
+        match (result1.file_type, result2.file_type) {
             (FileType::Application, FileType::Application) => dist1.cmp(dist2),
             (FileType::Application, _) => std::cmp::Ordering::Less,
             (_, FileType::Application) => std::cmp::Ordering::Greater,

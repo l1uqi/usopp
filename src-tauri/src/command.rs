@@ -1,16 +1,17 @@
-use std::{
-     sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::{Duration, Instant}
-};
+
+use std::time::Instant;
 use tokio::process::Command;
 
 use tauri::{LogicalSize, State, Window};
 use usopp::{
-     dto::{FileType, SearchResult, SearchResultPayLoad, SearchStatus, StorageData}, search::file::search_files_by_name, utils::{get_logical_drive_letters, get_sorted_result, get_window_position}, window::{WindowInfo, WindowManager}
+    dto::{FileEntry, FileType, Manage, PayLoad, SearchStatus, StorageData},
+    search::file::search_files_by_name,
+    utils::{get_logical_drive_letters, get_sorted_result, get_window_position},
+    window::WindowInfo,
 };
 
-
 #[tauri::command]
-pub fn sorted(data: Vec<SearchResult>, name: &str) -> Result<StorageData, Vec<SearchResult>> {
+pub fn sorted(data: Vec<FileEntry>, name: &str) -> Result<StorageData, Vec<FileEntry>> {
     let result = get_sorted_result(data, name);
     Ok(StorageData {
         data: serde_json::to_value(result).unwrap(),
@@ -18,39 +19,54 @@ pub fn sorted(data: Vec<SearchResult>, name: &str) -> Result<StorageData, Vec<Se
     })
 }
 
-// 多线程搜索
 #[tauri::command]
-pub async fn async_search(window: Window, name: &str) -> Result<(), String> {
-    let should_abort = Arc::new(AtomicBool::new(true));
+pub async fn async_search(
+    window: Window,
+    name: &str,
+    manage: State<'_, Manage>,
+) -> Result<(), String> {
     let start: Instant = Instant::now();
-    let mut result: Vec<SearchResult> = Vec::new();
-    
-    let drives = get_logical_drive_letters();
-    // 等待一段时间，以确保线程有机会中断搜索
-    thread::sleep(Duration::from_millis(100));
-    should_abort.store(false, Ordering::SeqCst);
-    let file_list = search_files_by_name(&window, &name, drives);
-
-    if !file_list.is_empty() {
-        result.extend(file_list);
+    let database = manage.database.lock().unwrap();
+    let mut result: Vec<FileEntry> = Vec::new();
+    if let Ok(data) =  database.search_by_name(name) {
+        println!("数据库中找到{}条记录", data.len());
+        result.extend(data);
     }
 
-    let elapsed = Instant::now().duration_since(start);
-    println!("搜索总耗时{}ms", elapsed.as_millis());
+    // let mut result: Vec<FileEntry> = file_index
+    //     .clone()
+    //     .into_iter()
+    //     .filter(|file: &FileEntry| file.name.to_lowercase().replace(" ", "").contains(name))
+    //     .collect();
+
+    if result.is_empty() {
+        let drives = get_logical_drive_letters();
+        let file_list = search_files_by_name(&window, &name, drives);
+        if !file_list.is_empty() {
+            result.extend(file_list);
+        }
+    }
 
     let result = get_sorted_result(result, name);
 
-    let _ = window.emit("search-result", SearchResultPayLoad {
-        data: result,
-        status: SearchStatus::Completed
-    });
+    let elapsed = Instant::now().duration_since(start);
+
+    println!("搜索总耗时{}ms", elapsed.as_millis());
+
+    let _ = window.emit(
+        "search-result",
+        PayLoad {
+            data: result,
+            status: SearchStatus::Completed,
+        },
+    );
     Ok(())
 }
 
 #[tauri::command]
 pub fn open(_window: Window, r_type: FileType, path: &str, directive: &str) {
     match r_type {
-        FileType::Folder => {
+        FileType::Directory => {
             if directive.is_empty() {
                 let mut command = Command::new("explorer");
                 command.arg(path);
@@ -62,15 +78,13 @@ pub fn open(_window: Window, r_type: FileType, path: &str, directive: &str) {
 
                 let _ = cmd.spawn().map_err(|e| e.to_string());
             }
-            if directive == "idea" {
-                
-            }
+            if directive == "idea" {}
         }
         _ => {
             let _ = Command::new("cmd")
-            .args(&["/C", "start", path])
-            .spawn()
-            .map_err(|e| e.to_string());
+                .args(&["/C", "start", path])
+                .spawn()
+                .map_err(|e| e.to_string());
         }
     }
 }
@@ -79,10 +93,10 @@ pub fn open(_window: Window, r_type: FileType, path: &str, directive: &str) {
 pub fn window_change(
     _window: Window,
     event: String,
-    win_manager: State<'_, Arc<Mutex<WindowManager>>>,
+    manage: State<'_, Manage>,
 ) -> Result<(), String> {
     // 在异步上下文中获取锁
-    let mut manager = win_manager.lock().unwrap();
+    let mut manager = manage.win.lock().unwrap();
     match event.as_str() {
         "blur" => {
             manager.hide_all_window();
@@ -105,9 +119,9 @@ pub fn window_change(
 pub async fn window_create<'a>(
     _window: Window,
     label: &'a str,
-    win_manager: State<'a, Arc<Mutex<WindowManager>>>,
+    manage: State<'_, Manage>,
 ) -> Result<(), String> {
-    let mut manager = win_manager.lock().unwrap();
+    let mut manager = manage.win.lock().unwrap();
 
     if let Some(main_window) = manager.get_window("usopp") {
         let main_window = main_window.clone();
@@ -128,19 +142,18 @@ pub fn window_resize(
     width: i32,
     height: i32,
     w_type: &str,
-    win_manager: State<Arc<Mutex<WindowManager>>>,
+    manage: State<'_, Manage>,
 ) {
+    let manager = manage.win.lock().unwrap();
     match w_type {
         // 主窗口变化
         "window" => {
-            let manager = win_manager.lock().unwrap();
             if let Some(win) = manager.get_window("usopp") {
                 let _ = win.set_size(LogicalSize { width, height });
             }
         }
         // 主窗口内嵌webview
         "webview" => {
-            let manager = win_manager.lock().unwrap();
             manager.update_window_size(width, height);
         }
         _ => {}
@@ -153,9 +166,9 @@ pub fn set_parent_window_info(
     width: f64,
     height: f64,
     top: f64,
-    win_manager: State<'_, Arc<Mutex<WindowManager>>>,
+    manage: State<'_, Manage>,
 ) -> Result<(), String> {
-    let mut manager = win_manager.lock().unwrap();
+    let mut manager = manage.win.lock().unwrap();
     manager.set_window_info(WindowInfo { width, height, top });
     Ok(())
 }
