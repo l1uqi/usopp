@@ -106,7 +106,7 @@ pub fn get_sorted_result(result: Vec<FileEntry>, name: &str) -> Vec<FileEntry> {
                 };
                 let icon_path = match file_type {
                     FileType::Application => Some(get_file_icon(&result.path, &result.name)),
-                    // FileType::File => Some(get_file_icon(&path, &result.name)),
+                    FileType::LNK => Some(get_file_icon(&result.path, &result.name)),
                     _ => None,
                 };
                 result.file_type = file_type;
