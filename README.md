@@ -1,10 +1,10 @@
-# Usopp
-
-<div align="center">
-
 English | [简体中文](./README.zh.md)
 
+<div align= "center">
+  <img align="center" width=200 src="./public/logo.png" />
+   <h1>usopp</h1>
 </div>
+
 
 A replication of the [rubick](https://github.com/rubickCenter/rubick) project based on [Tauri](https://tauri.app/).
 
@@ -28,11 +28,6 @@ If you have better implementations, feel free to submit a pull request.
 #### Application and folder search
 ![demo](./public/demo1-20240202.gif)
 
-#### Custom command activation
-![demo](./public/demo2.gif)
-
-#### Webview into Window effect
-![demo](./public/demo3.gif)
 
 ### Development
 Rust installation is required.
@@ -40,13 +35,6 @@ Rust installation is required.
 pnpm i
 
 pnpm run tauri
-```
-
-### Commands
-Currently in the exploration phase.
-```
-vscode: // Open with VS Code
-idea: // Open with IntelliJ IDEA
 ```
 
 ## License
