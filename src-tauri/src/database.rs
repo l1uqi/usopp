@@ -79,7 +79,14 @@ impl IndexDatabase {
         transaction.commit().unwrap();
     }
     pub fn search_by_name(&self, name: &str) -> Result<Vec<FileEntry>, Box<dyn std::error::Error>> {
-        let query = format!("SELECT * FROM file_index WHERE name LIKE '%{}%' LIMIT 100", name);
+        let mut query = String::new();
+        if name.len() < 2 {
+            query = format!("SELECT * FROM file_index WHERE name LIKE '%{}%' LIMIT 100", name)
+        } else {
+            query = format!("SELECT * FROM file_index WHERE name LIKE '%{}%'", name)
+
+        }
+        
         let mut stmt = self.conn.prepare(&query)?;
         let file_iter = stmt.query_map([], |row| {
             Ok(FileEntry {

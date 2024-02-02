@@ -1,7 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use init::init_app;
-use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, WindowEvent};
 use tokio::task;

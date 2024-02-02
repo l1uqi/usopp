@@ -1,57 +1,54 @@
-# usopp
+# Usopp
 
-基于[Tauri](https://tauri.app/) 复刻 [rubick](https://github.com/rubickCenter/rubick) 项目。
+<div align="center">
 
-项目初衷用于学习Rust, 代码现阶段凌乱, 后期会进行重构、优化。
+English | [简体中文](./README.zh.md)
 
-如果你有更好的实现, 欢迎提交pr.
+</div>
 
+A replication of the [rubick](https://github.com/rubickCenter/rubick) project based on [Tauri](https://tauri.app/).
 
-### 支持
-- 📋 应用程序列表
-- 🔎 支持拼音搜索
-- 📌 系统最小托盘
-- 📁 支持文件夹、文件搜索
+The project was originally intended for learning Rust, and the code is currently messy. Refactoring and optimization will be done in the future.
 
+If you have better implementations, feel free to submit a pull request.
 
-### 待办
-- [ ] 自定义指令打开 idea/vscode 方案探索阶段, 未来灵活可配 
-- [ ] 支持office文件
-- [ ] 窗口内嵌实现
-- [ ] 插件支持
-- [ ] 系统设置
-- [ ] Mac适配
+### Features
+- 📋 Application list
+- 🔎 Pinyin search support
+- 📌 System tray minimization
+- 📁 Folder and file search support
 
-### 演示
+### To-Do
+- [ ] Plugin support
+- [ ] System settings
+- [ ] Mac adaptation
 
-#### 程序、文件夹搜索
-![demo](./public/demo1-20240129.gif)
+### Demo
 
-#### 自定义指令开启
+#### Application and folder search
+![demo](./public/demo1-20240202.gif)
+
+#### Custom command activation
 ![demo](./public/demo2.gif)
 
-#### Webview into Windwo效果
+#### Webview into Window effect
 ![demo](./public/demo3.gif)
 
-### 开发
-需要安装rust.
+### Development
+Rust installation is required.
 ```
-pnpm i 
+pnpm i
 
-pnpm run tauri 
-```
-
-
-
-### 指令
-目前探索阶段
-
-```
-vscode: // 开启vscode打开
-idea: // 开启idea打开
+pnpm run tauri
 ```
 
+### Commands
+Currently in the exploration phase.
+```
+vscode: // Open with VS Code
+idea: // Open with IntelliJ IDEA
+```
 
-## 开源协议
+## License
 
-[MIT](https://zh.wikipedia.org/wiki/MIT%E8%A8%B1%E5%8F%AF%E8%AD%89)
+[MIT](https://en.wikipedia.org/wiki/MIT_License)
