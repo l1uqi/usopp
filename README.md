@@ -26,7 +26,7 @@ If you have better implementations, feel free to submit a pull request.
 ### Demo
 
 #### Application and folder search
-![demo](./public/demo1-20240202.gif)
+![demo](./public/demo1-202402021.gif)
 
 
 ### Development
