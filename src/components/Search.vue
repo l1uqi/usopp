@@ -121,7 +121,7 @@ const search_callback = async (event: { payload: { status: any; data: any; }; })
 </script>
 
 <template>
-  <div class="search" data-tauri-drag-region>
+  <div class="search" :class="list.length > 0 ? 'border-bottom-radius-0' : ''" data-tauri-drag-region>
     <img src="/logo.png" class="search-logo logo" alt="logo" />
     <span v-if="matchDirective" class="directive fade-in">{{ matchDirective }}</span>
     <input id="search-input" @focus="handleFocus" @keydown="handleKeyDown" @input="getSearhResult" class="search-input"
@@ -156,8 +156,14 @@ const search_callback = async (event: { payload: { status: any; data: any; }; })
   padding: 0px 15px;
   height: 60px;
   background-color: white;
+  border-radius: 6px;
 }
 
+
+.border-bottom-radius-0 {
+  border-bottom-right-radius: 0px !important;
+  border-bottom-left-radius: 0px !important;
+}
 .search-logo {
   width: 45px;
   height: 45px;

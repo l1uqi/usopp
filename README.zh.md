@@ -25,7 +25,7 @@
 ### 演示
 
 #### 程序、文件夹搜索
-![demo](./public/demo1-20240202.gif)
+![demo](./public/demo1-202402021.gif)
 
 ### 开发
 需要安装rust.
