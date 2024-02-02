@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use rusqlite::{Connection, OptionalExtension};
+use rusqlite::Connection;
 use tauri::api::path::local_data_dir;
 
 use crate::dto::FileEntry;
@@ -51,9 +51,8 @@ impl IndexDatabase {
         let transaction = self.conn.transaction().unwrap();
         let mut stmt = transaction
             .prepare(
-              "INSERT OR REPLACE INTO file_index (path, name, size, file_type, icon_path)
-              VALUES (?, ?, ?, ?, ?)"
-              ,
+                "INSERT OR REPLACE INTO file_index (path, name, size, file_type, icon_path)
+              VALUES (?, ?, ?, ?, ?)",
             )
             .unwrap();
         for entry in files {
@@ -66,14 +65,12 @@ impl IndexDatabase {
             let file_type = entry.file_type.to_string();
 
             let _ = stmt.execute([
-              &entry.path,
-              &entry.name,
-              &size.to_string(),
-              &file_type,
-              icon_path,
-          ]);
-
-            
+                &entry.path,
+                &entry.name,
+                &size.to_string(),
+                &file_type,
+                icon_path,
+            ]);
         }
         drop(stmt);
         transaction.commit().unwrap();
@@ -81,12 +78,14 @@ impl IndexDatabase {
     pub fn search_by_name(&self, name: &str) -> Result<Vec<FileEntry>, Box<dyn std::error::Error>> {
         let mut query = String::new();
         if name.len() < 2 {
-            query = format!("SELECT * FROM file_index WHERE name LIKE '%{}%' LIMIT 100", name)
+            query = format!(
+                "SELECT * FROM file_index WHERE name LIKE '%{}%' LIMIT 100",
+                name
+            )
         } else {
             query = format!("SELECT * FROM file_index WHERE name LIKE '%{}%'", name)
-
         }
-        
+
         let mut stmt = self.conn.prepare(&query)?;
         let file_iter = stmt.query_map([], |row| {
             Ok(FileEntry {
