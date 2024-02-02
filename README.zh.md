@@ -1,9 +1,6 @@
-# usopp
-
-<div align="center">
-
-简体中文 | [English](./README.md)
-
+<div align= "center">
+  <img align="center" width=200 src="./public/logo.png" />
+   <h1>usopp</h1>
 </div>
 
 基于[Tauri](https://tauri.app/) 复刻 [rubick](https://github.com/rubickCenter/rubick) 项目。
@@ -30,28 +27,12 @@
 #### 程序、文件夹搜索
 ![demo](./public/demo1-20240202.gif)
 
-#### 自定义指令开启
-![demo](./public/demo2.gif)
-
-#### Webview into Windwo效果
-![demo](./public/demo3.gif)
-
 ### 开发
 需要安装rust.
 ```
 pnpm i 
 
 pnpm run tauri 
-```
-
-
-
-### 指令
-目前探索阶段
-
-```
-vscode: // 开启vscode打开
-idea: // 开启idea打开
 ```
 
 

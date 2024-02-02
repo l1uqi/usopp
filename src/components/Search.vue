@@ -159,8 +159,9 @@ const search_callback = async (event: { payload: { status: any; data: any; }; })
 }
 
 .search-logo {
-  width: 50px;
+  width: 45px;
   height: 45px;
+  border-radius: 45px;
 }
 
 .search-input {
