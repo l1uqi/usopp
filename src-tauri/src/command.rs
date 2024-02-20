@@ -6,7 +6,7 @@ use tauri::{LogicalSize, State, Window};
 use usopp::{
     dto::{FileEntry, FileType, Manage, PayLoad, SearchStatus, StorageData},
     search::file::search_files_by_name,
-    utils::{get_logical_drive_letters, get_sorted_result, get_window_position},
+    utils::{get_logical_drive_letters, get_sorted_result, get_window_position, remove_file_index},
     window::WindowInfo,
 };
 
@@ -32,6 +32,8 @@ pub async fn async_search(
         println!("数据库中找到{}条记录", data.len());
         result.extend(data);
     }
+
+    let mut result = remove_file_index(result, database);
 
     // let mut result: Vec<FileEntry> = file_index
     //     .clone()

@@ -1,6 +1,6 @@
 use std::{
     fs,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, sync::MutexGuard,
 };
 
 use pinyin::{to_pinyin_vec, Pinyin};
@@ -8,9 +8,7 @@ use strsim::levenshtein;
 use tauri::PhysicalPosition;
 
 use crate::{
-    config::MAX_LIST_SIZE,
-    dto::{FileType, FileEntry},
-    icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file},
+    config::MAX_LIST_SIZE, database::IndexDatabase, dto::{FileEntry, FileType}, icons::{get_bitmap_buffer, get_icon, get_icon_bigmap, save_icon_file}
 };
 
 // 创建目录
@@ -65,12 +63,18 @@ pub fn check_drive_exists(drive_letter: char) -> bool {
     }
 }
 
+// 判断文件是否存在
+pub fn check_path_file(file_path: &str) -> bool {
+    let path = Path::new(&file_path); // 将字符串转换为路径对象
+
+    path.exists()
+}
+
 // 获取窗口位置
 pub fn get_window_position(window: &tauri::Window) -> PhysicalPosition<i32> {
     if let Ok(position) = window.inner_position() {
         return position;
     }
-
     PhysicalPosition::new(0, 0)
 }
 
@@ -138,6 +142,18 @@ pub fn get_sorted_result(result: Vec<FileEntry>, name: &str) -> Vec<FileEntry> {
         .collect();
 
     result
+}
+
+// 文件不存在, 则移除索引
+pub fn remove_file_index(result: Vec<FileEntry>, mut database: MutexGuard<'_, IndexDatabase>) -> Vec<FileEntry> {
+   let list: Vec<FileEntry> = result.into_iter().filter(|data| {
+       let is = check_path_file(&data.path);
+       if !is {
+        database.delete(&data.path)
+       }
+       is
+   }).collect();
+   list
 }
 
 fn get_file_icon(f_path: &str, f_name: &str) -> String {
