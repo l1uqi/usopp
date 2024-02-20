@@ -75,6 +75,15 @@ impl IndexDatabase {
         drop(stmt);
         transaction.commit().unwrap();
     }
+    pub fn delete(&mut self, path: &str) {
+        let transaction = self.conn.transaction().unwrap();
+        let mut stmt = transaction.prepare("DELETE FROM file_index WHERE path = ?").unwrap();
+        let _ = stmt.execute([
+            &path,
+        ]);
+        drop(stmt);
+        transaction.commit().unwrap();
+    }
     pub fn search_by_name(&self, name: &str) -> Result<Vec<FileEntry>, Box<dyn std::error::Error>> {
         let mut query = String::new();
         if name.len() < 2 {

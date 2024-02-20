@@ -159,11 +159,11 @@ const search_callback = async (event: { payload: { status: any; data: any; }; })
   border-radius: 6px;
 }
 
-
 .border-bottom-radius-0 {
   border-bottom-right-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
 }
+
 .search-logo {
   width: 45px;
   height: 45px;

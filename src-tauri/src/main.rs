@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use tauri::{Manager, WindowEvent};
 use tokio::task;
 use usopp::database::IndexDatabase;
-use usopp::dto::{FileEntry, Manage};
+use usopp::dto::Manage;
 use usopp::window::WindowManager;
 
 mod command;

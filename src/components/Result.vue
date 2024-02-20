@@ -72,6 +72,7 @@ const fileToUrl = (filePath: string, r_type: FileType) => {
       return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABKklEQVR4nGNgGAWDFfg9/R/o/+z/cv+n/1cRg11PfJytUn+Lj2oO8H/6/3PAs///icXOB9//06q7fEm34pIgVRwQQILlIOxy6MN/7erL/zWrL52hiiMCSHbAx/861Zep54gAMhygW3WFeo4IINEBroc+/teruko9RwSQ6AD345//61ddxXREzaXjZOWOABIdEPDk/3/79a/+W817DMaW8x79t5j/6L/5nAdfzZc+3k17BzzDj0cdwEBpFFgdvvfffN9tojBILdWjgKN42n/WgslEYZDa4ZcGFGbv+i83YztBbLj18jB1QMBARwHHQCdCq4HOhlZEOsDpwquBjQKF2buGaSIMGHkOePr/E9Uc8PT/J3Ic4E9KxwQnfvZ/ud+T/34kO2AUMNAJAABtYcoqssYmawAAAABJRU5ErkJggg==";  
   }
 }
+
 const handleKeyDown = (event: { key: string; }) => {
   if(list.value != null) {
     if(list.value?.length === 0) return; 

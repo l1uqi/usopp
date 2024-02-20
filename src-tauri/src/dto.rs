@@ -1,8 +1,5 @@
 use std::sync::{Arc, Mutex};
-
-use rusqlite::Connection;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
 use crate::{database::IndexDatabase, window::WindowManager};
 
 #[derive(Clone)]
